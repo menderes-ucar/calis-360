@@ -17,7 +17,29 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
+# Secrets / Env
+.env
+.env.*
+*.env
 
+# Firebase
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase_app_id_file.json
+
+# Android signing
+key.properties
+*.jks
+*.keystore
+upload-keystore.jks
+
+# iOS
+ios/Pods/
+ios/Flutter/ephemeral/
+ios/Flutter/flutter_export_environment.sh
+
+# Generated files
+lib/firebase_options.dart
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
