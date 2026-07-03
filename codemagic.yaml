@@ -2,11 +2,19 @@ workflows:
   ios-release:
     name: iOS Release
     instance_type: mac_mini_m2
+
     environment:
       flutter: stable
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.calis360.zirve
+
+    integrations:
+      app_store_connect: Codemagic
 
     scripts:
       - flutter pub get
+      - xcode-project use-profiles
       - flutter build ipa --release
 
     artifacts:
