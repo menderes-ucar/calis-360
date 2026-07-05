@@ -10,10 +10,10 @@ An advanced, production-ready academic productivity application engineered with 
 
 <p align="center">
 <a href="https://play.google.com/store/apps/details?id=com.calis360.app">
-<img src="https://img.shields.io/badge/Download-Google%20Play-34A853?style=for-the-badge&logo=google-play&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Download-Google%20Play-34A853?style=for-the-badge&logo=google-play&logoColor=white"/>
 </a>
 <a href="https://www.linkedin.com/in/menderes-u%C3%A7ar-97a7b9343">
-<img src="https://img.shields.io/badge/LinkedIn-Profile-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
+  <img src="https://img.shields.io/badge/LinkedIn-Profile-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a>
 </p>
 
@@ -31,26 +31,26 @@ An advanced, production-ready academic productivity application engineered with 
 # 📱 Production UI Showcase
 
 <p align="center">
-  <img src="home.jpg" width="45%" alt="Dashboard Overview"/>
-  <img src="exams.webp" width="45%" alt="Exam & Question Tracking"/>
+  <img src="https://github.com/user-attachments/assets/63f855e5-d8b7-4cc3-b51e-8f0f5513d1b9" width="48%" style="max-width: 450px; border-radius: 10px; margin: 1%;" alt="Dashboard Overview"/>
+  <img src="https://github.com/user-attachments/assets/7967eb0b-14ca-46b1-852c-94052be9c964" width="48%" style="max-width: 450px; border-radius: 10px; margin: 1%;" alt="Exam & Question Tracking"/>
 </p>
 
 <p align="center">
-  <img src="calendar.webp" width="45%" alt="Academic Calendar"/>
-  <img src="goals.webp" width="45%" alt="Goal Management System"/>
+  <img src="https://github.com/user-attachments/assets/59ee4d6a-3f5e-401f-9a11-308086c07d56" width="48%" style="max-width: 450px; border-radius: 10px; margin: 1%;" alt="Academic Calendar"/>
+  <img src="https://github.com/user-attachments/assets/b1c6b3ce-0568-4588-a45a-9a431de69edb" width="48%" style="max-width: 450px; border-radius: 10px; margin: 1%;" alt="Goal Management System"/>
 </p>
 
 <p align="center">
-  <img src="planner.jpg" width="45%" alt="Premium Settings"/>
+  <img src="https://github.com/user-attachments/assets/3a649261-47e0-4e6e-acee-c1be11305326" width="48%" style="max-width: 450px; border-radius: 10px; margin: 1%;" alt="Premium Settings"/>
 </p>
 
 ---
 
 # 📖 Overview
 
-**Çalış360** is a full-stack cross-platform mobile ecosystem built to eliminate fragmented student workflows by consolidating academic metrics, intelligent scheduling, and target tracking into a single source of truth. 
+**Çalış360** is a full-stack, cross-platform mobile ecosystem built to eliminate fragmented student workflows by consolidating academic metrics, intelligent scheduling, and target tracking into a single source of truth. 
 
-The primary engineering focus of this project was to implement a **highly scalable, scalable, and decoupled architecture** leveraging deterministic state propagation, an abstract repository layer, and offline-first cloud synchronization.
+The primary engineering focus of this project was to implement a **highly resilient, scalable, and decoupled architecture** leveraging deterministic state propagation, an abstract repository layer, and offline-first cloud synchronization patterns.
 
 ---
 
@@ -58,17 +58,17 @@ The primary engineering focus of this project was to implement a **highly scalab
 
 ### 📊 Academic CRM & Analytics Engine
 - **Granular Goal Setting:** Multi-tier target decomposition (Daily/Weekly/Monthly) mapping user milestones via localized progression engines.
-- **Dynamic Timetable Grid:** Custom academic scheduling infrastructure designed to synchronize recurring university course structures with localized notifications.
+- **Dynamic Timetable Grid:** Custom academic scheduling infrastructure designed to synchronize recurring university course structures with localized background execution.
 - **Question Bank & Performance Diagnostics:** A dedicated repository module for isolating complex problem sets, allowing students to archive images of challenging tasks and track quantitative exam net metrics over time.
 
 ### 📝 Core Productivity Mechanics
 - **Context-Aware Notes:** Modular rich-text logging bound to specific academic modules for seamless cross-referencing.
-- **High-Stakes Countdown Engine:** Real-time countdown infrastructure built using optimized periodic streams to track critical exam windows without UI overhead.
+- **High-Stakes Countdown Engine:** Real-time countdown infrastructure built using optimized periodic streams to track critical exam windows without UI blocking or performance overhead.
 
 ### 🔒 Resilient Infrastructure
 - **Identity Federation:** Secure onboarding and session preservation implemented via Firebase Authentication token validation.
-- **Offline-First Synchronizer:** Built on top of Cloud Firestore's caching layer to guarantee uninterrupted write operations during cellular drops, handling smooth downstream data merges.
-- **Feature-Flagged Premium Subscriptions:** Configuration-driven access control mappings enabling modular UI adjustments and feature gating for future commercial tiers.
+- **Offline-First Synchronizer:** Built on top of Cloud Firestore's multi-device caching layer to guarantee uninterrupted write operations during network latency or cellular drops.
+- **Feature-Flagged Premium Subscriptions:** Configuration-driven access control mappings enabling modular UI adjustments and feature gating for commercial tiers.
 
 ---
 
