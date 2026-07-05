@@ -1,7 +1,7 @@
 # 🚀 Çalış360
 
 <p align="center">
-  <b size="6">Smart Study Planner & Academic Productivity Platform</b>
+  <b>Smart Study Planner & Academic Productivity Platform</b>
 </p>
 
 <p align="center">
@@ -11,6 +11,9 @@ An advanced, production-ready academic productivity application engineered with 
 <p align="center">
 <a href="https://play.google.com/store/apps/details?id=com.calis360.app">
 <img src="https://img.shields.io/badge/Download-Google%20Play-34A853?style=for-the-badge&logo=google-play&logoColor=white"/>
+</a>
+<a href="https://www.linkedin.com/in/menderes-u%C3%A7ar-97a7b9343">
+<img src="https://img.shields.io/badge/LinkedIn-Profile-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a>
 </p>
 
@@ -25,85 +28,87 @@ An advanced, production-ready academic productivity application engineered with 
 
 ---
 
-# 📱 Screenshots & UI Showcase
+# 📱 Production UI Showcase
 
 <p align="center">
-  <img src="https://uqr.to/images/shared_images/12836267_image3.png" width="45%" alt="Dashboard Overview"/>
-  <img src="https://uqr.to/images/shared_images/12836266_image2.png" width="45%" alt="Exam & Question Tracking"/>
+  <img src="home.jpg" width="45%" alt="Dashboard Overview"/>
+  <img src="exams.webp" width="45%" alt="Exam & Question Tracking"/>
 </p>
 
 <p align="center">
-  <img src="https://uqr.to/images/shared_images/12836268_image4.png" width="45%" alt="Academic Calendar"/>
-  <img src="https://uqr.to/images/shared_images/12836269_image5.png" width="45%" alt="Goal Management System"/>
+  <img src="calendar.webp" width="45%" alt="Academic Calendar"/>
+  <img src="goals.webp" width="45%" alt="Goal Management System"/>
 </p>
 
 <p align="center">
-  <img src="https://uqr.to/images/shared_images/12836265_image1.png" width="45%" alt="Premium Settings"/>
+  <img src="planner.jpg" width="45%" alt="Premium Settings"/>
 </p>
 
 ---
 
 # 📖 Overview
 
-**Çalış360** is a full-stack mobile platform built to consolidate fragmented student workflows into a single, intuitive ecosystem. Instead of jumping between disparate apps for calendar events, task lists, and exam tracking, Çalış360 coordinates the entire academic cycle. 
+**Çalış360** is a full-stack cross-platform mobile ecosystem built to eliminate fragmented student workflows by consolidating academic metrics, intelligent scheduling, and target tracking into a single source of truth. 
 
-The primary engineering focus of this project was to establish a highly maintainable, scalable, and cross-platform architecture utilizing deterministic state management and cloud synchronization.
-
----
-
-# ✨ Core Features
-
-### 📚 Academic CRM & Analytics
-- **Granular Goal Setting:** Daily, weekly, and monthly objective breakdown with continuous progression metrics.
-- **Dynamic Scheduling:** Full-featured academic planner synced with university courses and modular timetables.
-- **Exam & Question Bank Repository:** Dedicated module to archive challenging questions and analyze past exam performance.
-
-### 📝 Productivity Engine
-- **Task & Smart Notes System:** Integrated rich-text options tied directly to specific academic modules.
-- **Countdown Infrastructure:** Real-time countdown engine built for high-stakes exam preparation tracking.
-
-### 🔒 Enterprise-Grade Infrastructure
-- **Secure Authentication:** Seamless user onboarding and token management via Firebase Authentication.
-- **Real-Time Data Layer:** Offline-first capability with instant Cloud Firestore multi-device synchronization.
-- **Premium Tiering System:** Feature-flagged architecture enabling modular access control and configuration maps.
+The primary engineering focus of this project was to implement a **highly scalable, scalable, and decoupled architecture** leveraging deterministic state propagation, an abstract repository layer, and offline-first cloud synchronization.
 
 ---
 
-# 🛠 Tech Stack
+# ✨ Enterprise Features
 
-| Layer | Technology | Purpose |
+### 📊 Academic CRM & Analytics Engine
+- **Granular Goal Setting:** Multi-tier target decomposition (Daily/Weekly/Monthly) mapping user milestones via localized progression engines.
+- **Dynamic Timetable Grid:** Custom academic scheduling infrastructure designed to synchronize recurring university course structures with localized notifications.
+- **Question Bank & Performance Diagnostics:** A dedicated repository module for isolating complex problem sets, allowing students to archive images of challenging tasks and track quantitative exam net metrics over time.
+
+### 📝 Core Productivity Mechanics
+- **Context-Aware Notes:** Modular rich-text logging bound to specific academic modules for seamless cross-referencing.
+- **High-Stakes Countdown Engine:** Real-time countdown infrastructure built using optimized periodic streams to track critical exam windows without UI overhead.
+
+### 🔒 Resilient Infrastructure
+- **Identity Federation:** Secure onboarding and session preservation implemented via Firebase Authentication token validation.
+- **Offline-First Synchronizer:** Built on top of Cloud Firestore's caching layer to guarantee uninterrupted write operations during cellular drops, handling smooth downstream data merges.
+- **Feature-Flagged Premium Subscriptions:** Configuration-driven access control mappings enabling modular UI adjustments and feature gating for future commercial tiers.
+
+---
+
+# 🛠 Production Tech Stack
+
+| Layer | Technology | Engineering Purpose |
 | :--- | :--- | :--- |
-| **Frontend Framework** | Flutter (v3.35) | Cross-platform UI rendering |
-| **Language** | Dart (v3.9) | Strongly-typed, asynchronous execution |
-| **State Management** | Provider | Reactive, predictable state propagation |
-| **Routing Architecture** | GoRouter | Declarative, deep-link ready navigation scheme |
-| **Database & Auth** | Cloud Firestore / Firebase Auth | Cloud-native data storage & identity federation |
-| **Local Storage** | SharedPreferences | High-performance key-value local caching |
+| **Frontend Framework** | Flutter (v3.35) | High-performance, 60fps compiled UI delivery across target platforms. |
+| **Language** | Dart (v3.9) | Strongly-typed, sound null-safety asset pipelines with ahead-of-time (AOT) compilation. |
+| **State Management** | Provider | Reactive, deterministic, and predictable unidirectional state propagation. |
+| **Routing Protocol** | GoRouter | Declarative, deep-link ready navigation topology with compile-time type-safety patterns. |
+| **Database & Auth** | Cloud Firestore / Auth | Distributed, cloud-native storage infrastructure utilizing secure identity federation. |
+| **Local Persistence** | SharedPreferences | Low-latency key-value local state caching for fast boot workflows. |
 
 ---
 
 # 🏗 Architectural Blueprint
 
+The application enforces strict separation of concerns utilizing a clean, repository-driven adaptation of MVVM architecture to maximize testability and maintain modular isolation:
+
 ```text
-       ┌────────────────────────────────────────────────────────┐
-       │                   Presentation Layer                   │
-       │         (Material 3 UI / Highly Reusable Widgets)      │
-       └───────────────────────────┬────────────────────────────┘
-                                   │
-                                   ▼
-       ┌────────────────────────────────────────────────────────┐
-       │               State Management (Provider)              │
-       │          (Business Logic & Reactive UI Triggers)       │
-       └───────────────────────────┬────────────────────────────┘
-                                   │
-                                   ▼
-       ┌────────────────────────────────────────────────────────┐
-       │                   Repository Pattern                   │
-       │        (Abstracted Data Sourcing & Local Cache)        │
-       └───────────────────────────┬────────────────────────────┘
-                                   │
-                                   ▼
-       ┌────────────────────────────────────────────────────────┐
-       │               Network & Firebase Services              │
-       │       (Firestore Rules / Federated Authentication)     │
-       └────────────────────────────────────────────────────────┘
+        ┌────────────────────────────────────────────────────────┐
+        │                   Presentation Layer                   │
+        │          (Material 3 UI / Dumb Layout Widgets)         │
+        └───────────────────────────┬────────────────────────────┘
+                                    │
+                                    ▼
+        ┌────────────────────────────────────────────────────────┐
+        │               State Management (Provider)              │
+        │          (Business Logic / ViewModel Adapters)         │
+        └───────────────────────────┬────────────────────────────┘
+                                    │
+                                    ▼
+        ┌────────────────────────────────────────────────────────┐
+        │                   Repository Pattern                   │
+        │        (Unified Interface for Cloud / Cache Data)       │
+        └───────────────────────────┬────────────────────────────┘
+                                    │
+                                    ▼
+        ┌────────────────────────────────────────────────────────┐
+        │               Network & Core Infrastructure            │
+        │         (Firestore Queries / Client Authentication)    │
+        └────────────────────────────────────────────────────────┘
