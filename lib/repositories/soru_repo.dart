@@ -1,80 +1,71 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/soru.dart';
 
 class SoruRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  SoruRepository({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  }) : _firestore = firestore,
+       _auth = auth;
 
-  // 1. Soru ekleme (kendi UID altında)
-  Future<void> addSoru(Soru soru) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sorular")
-        .doc(soru.soruId)
-        .set({
-      "soruAd": soru.soruAd,
-      "soruDers": soru.soruDers,
-      "soruKonu": soru.soruKonu,
-      "soruCevap": soru.soruCevap,
-    });
-  }
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
-  // 2. Kullanıcının sorularını listeleme (Stream)
-  Stream<List<Soru>> getSorular() {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    return _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sorular")
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Soru.fromJson(doc.data(), doc.id);
-      }).toList();
-    });
-  }
+  String? get _uid => _auth.currentUser?.uid;
 
-  // 3. Tek bir soru getirme (kendi UID)
-  Future<Soru?> getSoru(String id) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final doc = await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sorular")
-        .doc(id)
-        .get();
-    if (doc.exists) {
-      return Soru.fromJson(doc.data()!, doc.id);
+  String _requireUid() {
+    final uid = _uid;
+    if (uid == null) {
+      throw StateError('Soru işlemi için aktif oturum gerekli.');
     }
-    return null;
+    return uid;
   }
 
-  // 4. Soru güncelleme (kendi UID)
-  Future<void> updateSoru(Soru soru) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sorular")
-        .doc(soru.soruId)
-        .update({
-      "soruAd": soru.soruAd,
-      "soruDers": soru.soruDers,
-      "soruKonu": soru.soruKonu,
-      "soruCevap": soru.soruCevap,
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _firestore.collection('users').doc(uid).collection('sorular');
+  }
+
+  String createId() => _collection(_requireUid()).doc().id;
+
+  Future<void> addSoru(Soru soru) async {
+    final uid = _requireUid();
+    await _collection(uid).doc(soru.soruId).set({
+      ...soru.toJson(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
-  // 5. Soru silme (kendi UID)
+  Stream<List<Soru>> getSorular() {
+    final uid = _uid;
+    if (uid == null) return Stream.value(const <Soru>[]);
+
+    return _collection(uid).snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => Soru.fromJson(doc.data(), doc.id))
+          .toList(),
+    );
+  }
+
+  Future<Soru?> getSoru(String id) async {
+    final uid = _requireUid();
+    final doc = await _collection(uid).doc(id).get();
+    final data = doc.data();
+    return data == null ? null : Soru.fromJson(data, doc.id);
+  }
+
+  Future<void> updateSoru(Soru soru) async {
+    final uid = _requireUid();
+    await _collection(uid).doc(soru.soruId).update({
+      ...soru.toJson(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> deleteSoru(String id) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sorular")
-        .doc(id)
-        .delete();
+    final uid = _requireUid();
+    await _collection(uid).doc(id).delete();
   }
 }

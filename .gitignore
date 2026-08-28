@@ -65,3 +65,35 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Local / generated archives
+*.zip
+
+# Firebase local cache
+.firebase/
+
+# Firebase Functions
+functions/node_modules/
+functions/.env
+functions/.env.*
+functions/*.local
+
+# Secret / credential variants
+*.p12
+*.pem
+*.mobileprovision
+*service-account*.json
+*credentials*.json
+*secret*.json
+
+# Local QA / audit artifacts
+*_AUDIT_*.json
+*_AUDIT*.json
+*_QA*.json
+*_REPORT*.md
+*_COVERAGE*.txt
+PRODUCT_RELEASE_GATE*.json
+MASTER_GLOBAL_AUDIT*.json
+CATALOG_*_AUDIT*.json
+
+# Local migration / maintenance scripts
+CLEANUP_LEGACY_FILES.ps1

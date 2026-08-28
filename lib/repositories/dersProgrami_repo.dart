@@ -1,63 +1,73 @@
+// ignore_for_file: file_names
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/dersProgrami.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class DersProgramiRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+import '../models/dersProgrami.dart';
 
-  Future<void> addDersProgram(DersProgram dersProgram) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(userId)
-        .collection("dersProgram")
-        .doc(dersProgram.dersProgramId)
-        .set(dersProgram.toJson());
+class DersProgramiRepository {
+  DersProgramiRepository({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  }) : _firestore = firestore,
+       _auth = auth;
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  String? get _uid => _auth.currentUser?.uid;
+
+  String _requireUid() {
+    final uid = _uid;
+    if (uid == null) {
+      throw StateError('Ders programı işlemi için aktif oturum gerekli.');
+    }
+    return uid;
   }
 
-  Stream<List<DersProgram>> getDersProgram() {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    return _firestore
-        .collection("users")
-        .doc(userId)
-        .collection("dersProgram")
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return DersProgram.fromjson(doc.data(), doc.id);
-      }).toList();
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _firestore.collection('users').doc(uid).collection('dersProgram');
+  }
+
+  String createId() => _collection(_requireUid()).doc().id;
+
+  Future<void> addDersProgram(DersProgram dersProgram) async {
+    final uid = _requireUid();
+    await _collection(uid).doc(dersProgram.dersProgramId).set({
+      ...dersProgram.toJson(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
+  Stream<List<DersProgram>> getDersProgram() {
+    final uid = _uid;
+    if (uid == null) return Stream.value(const <DersProgram>[]);
+
+    return _collection(uid).snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => DersProgram.fromjson(doc.data(), doc.id))
+          .toList(),
+    );
+  }
+
   Future<void> deleteDersProgram(String id) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(userId)
-        .collection("dersProgram")
-        .doc(id)
-        .delete();
+    final uid = _requireUid();
+    await _collection(uid).doc(id).delete();
   }
 
   Future<void> updateTamamlandi(String id, bool value) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(userId)
-        .collection("dersProgram")
-        .doc(id)
-        .update({
-      "tamamlandi": value,
+    final uid = _requireUid();
+    await _collection(uid).doc(id).update({
+      'tamamlandi': value,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> updateDersProgram(DersProgram dersProgram) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(userId)
-        .collection("dersProgram")
-        .doc(dersProgram.dersProgramId)
-        .update(dersProgram.toJson());
+    final uid = _requireUid();
+    await _collection(uid).doc(dersProgram.dersProgramId).update({
+      ...dersProgram.toJson(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }

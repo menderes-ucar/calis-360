@@ -1,90 +1,77 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/home_hedef_ekle.dart';
 
 class HomeHedefRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  HomeHedefRepository({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  }) : _firestore = firestore,
+       _auth = auth;
 
-  // 1. VERİ EKLEME / GÜNCELLEME (Kullanıcı bazlı)
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  String? get _uid => _auth.currentUser?.uid;
+
+  String _requireUid() {
+    final uid = _uid;
+    if (uid == null) {
+      throw StateError('Ana hedef işlemi için aktif oturum gerekli.');
+    }
+    return uid;
+  }
+
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _firestore.collection('users').doc(uid).collection('homeHedef');
+  }
+
   Future<void> addOrUpdateHedefForCurrentUser({
     required int net,
     required String uni,
     required String bolum,
   }) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final hedef = HomeHedef(
-      id: uid,
-      net: net,
-      uni: uni,
-      bolum: bolum,
-    );
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("homeHedef")
-        .doc(uid)
-        .set(hedef.toJson());
+    final uid = _requireUid();
+    final hedef = HomeHedef(id: uid, net: net, uni: uni, bolum: bolum);
+    await _collection(uid).doc(uid).set({
+      ...hedef.toJson(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  // 2. Kullanıcının kendi hedefini Stream ile dinle
   Stream<HomeHedef?> getHomeHedefForCurrentUser() {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    return _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("homeHedef")
-        .doc(uid)
-        .snapshots()
-        .map((snapshot) {
-      if (!snapshot.exists || snapshot.data() == null) return null;
-      final data = snapshot.data() as Map<String, dynamic>;
-      return HomeHedef(
-        id: uid,
-        net: data['net'] ?? 0,
-        uni: data['uni'] ?? '',
-        bolum: data['bolum'] ?? '',
-      );
+    final uid = _uid;
+    if (uid == null) return Stream.value(null);
+
+    return _collection(uid).doc(uid).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (data == null) return null;
+      return HomeHedef.fromJson(data, snapshot.id);
     });
   }
 
-  // 3. Kullanıcının kendi hedefini sil
   Future<void> deleteHomeHedefForCurrentUser() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("homeHedef")
-        .doc(uid)
-        .delete();
+    final uid = _requireUid();
+    await _collection(uid).doc(uid).delete();
   }
 
-  // 4. Genel listeleme (isteğe bağlı, kullanıcı bazlı değil)
   Stream<List<HomeHedef>> getHomeHedefler() {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    return _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("homeHedef")
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return HomeHedef.fromJson(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    });
+    final uid = _uid;
+    if (uid == null) return Stream.value(const <HomeHedef>[]);
+
+    return _collection(uid).snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => HomeHedef.fromJson(doc.data(), doc.id))
+          .toList(),
+    );
   }
 
-  // 5. Tek veri getirme (kendi UID)
   Future<HomeHedef?> getHomeHedefById(String id) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final doc = await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("homeHedef")
-        .doc(id)
-        .get();
-    if (doc.exists) {
-      return HomeHedef.fromJson(doc.data() as Map<String, dynamic>, doc.id);
-    }
-    return null;
+    final uid = _requireUid();
+    final doc = await _collection(uid).doc(id).get();
+    final data = doc.data();
+    return data == null ? null : HomeHedef.fromJson(data, doc.id);
   }
 }

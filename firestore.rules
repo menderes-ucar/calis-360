@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isServerManagedCollection(collectionId) {
+      return collectionId in [
+        'ai_requests',
+        'ai_usage',
+        'credit_ledger',
+        'billing',
+        'entitlements'
+      ];
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly([
+          'uid', 'email', 'displayName', 'emailVerified',
+          'plan', 'creditBalance', 'subscriptionStatus',
+          'onboardingCompleted', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.plan == 'free'
+        && request.resource.data.creditBalance == 0
+        && request.resource.data.subscriptionStatus == 'inactive';
+
+      allow update: if isOwner(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email',
+          'displayName',
+          'emailVerified',
+          'onboardingCompleted',
+          'updatedAt'
+        ]);
+
+      // Hesap silme production'da callable Cloud Function üzerinden yapılır.
+      allow delete: if false;
+
+      // AI geçmişi ve kredi/billing kayıtları sunucu otoritesindedir.
+      match /ai_requests/{requestId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      match /ai_usage/{dayId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      match /credit_ledger/{entryId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      match /billing/{document=**} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      match /entitlements/{document=**} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // Mevcut çalışma verileri (sorular, sınavlar, hedefler, program, cihazlar...)
+      // kullanıcı tarafından yönetilebilir. Server-managed koleksiyonlar hariç tutulur.
+      match /{collectionId}/{document=**} {
+        allow read, write: if isOwner(uid)
+          && !isServerManagedCollection(collectionId);
+      }
+    }
+  }
+}

@@ -1,173 +1,282 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/errors/data_error_mapper.dart';
+import '../../features/study_data/presentation/providers/study_data_providers.dart';
 import '../../models/hedef.dart';
 
-class HedeflerEkle extends StatefulWidget {
+class HedeflerEkle extends ConsumerStatefulWidget {
   const HedeflerEkle({super.key});
 
   @override
-  State<HedeflerEkle> createState() => _HedeflerEkleState();
+  ConsumerState<HedeflerEkle> createState() => _HedeflerEkleState();
 }
 
-class _HedeflerEkleState extends State<HedeflerEkle> {
-  final List<String> hedefZamanlari = [
-    "Günlük Hedef",
-    "Haftalık Hedef",
-    "Aylık Hedef"
+class _HedeflerEkleState extends ConsumerState<HedeflerEkle> {
+  static const hedefZamanlari = <String>[
+    'Günlük Hedef',
+    'Haftalık Hedef',
+    'Aylık Hedef',
   ];
 
-  final TextEditingController hedefText = TextEditingController();
-  final TextEditingController hedefNoteText = TextEditingController();
+  final hedefText = TextEditingController();
+  final hedefNoteText = TextEditingController();
 
   String? hedefZamani;
   DateTime? secilenTarih;
+  bool _saving = false;
 
-  Future<void> tarihSec(BuildContext context) async {
+  @override
+  void dispose() {
+    hedefText.dispose();
+    hedefNoteText.dispose();
+    super.dispose();
+  }
+
+  Future<void> tarihSec() async {
     final now = DateTime.now();
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: secilenTarih ?? now,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 2),
     );
-    if (picked != null) {
-      setState(() {
-        secilenTarih = picked;
-      });
+    if (picked != null && mounted) {
+      setState(() => secilenTarih = picked);
     }
   }
 
-  void hedefEkle() async {
-    if (hedefText.text.isEmpty || hedefNoteText.text.isEmpty || hedefZamani == null) {
+  Future<void> hedefEkle() async {
+    if (_saving) return;
+
+    final hedefAdi = hedefText.text.trim();
+    final hedefNotu = hedefNoteText.text.trim();
+
+    if (hedefAdi.isEmpty || hedefZamani == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Hedef, not ve zamanı seçmelisin!")),
+        const SnackBar(content: Text('Hedef adı ve hedef türü gerekli.')),
       );
       return;
     }
 
-    if (hedefZamani == "Günlük Hedef") {
-      secilenTarih = DateTime.now();
+    if (hedefZamani != 'Günlük Hedef' && secilenTarih == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hedef tarihini seçmelisin.')),
+      );
+      return;
     }
 
-    // Kullanıcının UID'si altına ekleme
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final docRef = FirebaseFirestore.instance
-        .collection("users")
-        .doc(uid)
-        .collection("hedefler")
-        .doc(); // otomatik ID
+    setState(() => _saving = true);
+    try {
+      final repository = ref.read(hedefRepositoryProvider);
+      final yeniHedef = Hedef(
+        hedefId: repository.createId(),
+        hedefAd: hedefAdi,
+        hedefNote: hedefNotu,
+        hedefTarihi: hedefZamani == 'Günlük Hedef'
+            ? DateTime.now()
+            : secilenTarih!,
+        hedefZamani: hedefZamani!,
+      );
 
-    final yeniHedef = Hedef(
-      hedefId: docRef.id,
-      hedefAd: hedefText.text,
-      hedefNote: hedefNoteText.text,
-      hedefTarihi: secilenTarih ?? DateTime.now(),
-      hedefZamani: hedefZamani!,
-    );
+      await repository.addHedef(yeniHedef);
+      if (!mounted) return;
 
-    await docRef.set({
-      "hedefAd": yeniHedef.hedefAd,
-      "hedefNote": yeniHedef.hedefNote,
-      "hedefTarihi": yeniHedef.hedefTarihi,
-      "hedefZamani": yeniHedef.hedefZamani,
-    });
-
-    setState(() {
-      hedefText.clear();
-      hedefNoteText.clear();
-      hedefZamani = null;
-      secilenTarih = null;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Hedef eklendi ✅")),
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hedef eklendi.')),
+      );
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(DataErrorMapper.message(error))),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hedef Ekle"),
-        backgroundColor: const Color(0xFFE4080A),
-      ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFE4080A),
-              Color(0xFFFE9900),
-              Color(0xFFFFDE59),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomLeft,
-          ),
-        ),
-        child: Column(
+      appBar: AppBar(title: const Text('Yeni hedef')),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: hedefText,
-                decoration: const InputDecoration(
-                  labelText: "Hedef Adı",
-                  border: OutlineInputBorder(),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
                 ),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1685C8).withValues(alpha: 0.16),
+                    blurRadius: 18,
+                    offset: const Offset(0, 7),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: const Icon(
+                      Icons.flag_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Net bir hedef belirle',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Kısa, ölçülebilir ve tamamladığında işaretleyebileceğin bir hedef oluştur.',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.86),
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: hedefNoteText,
-                decoration: const InputDecoration(
-                  labelText: "Hedef Notu",
-                  border: OutlineInputBorder(),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colors.outlineVariant,
+                  width: 1.5,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.045),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hedef detayları',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: hedefText,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Hedef',
+                      hintText: 'Örn. 40 paragraf sorusu çöz',
+                      prefixIcon: Icon(Icons.edit_note_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: hedefNoteText,
+                    minLines: 2,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Not (isteğe bağlı)',
+                      hintText: 'Hedefle ilgili kısa bir not ekle',
+                      alignLabelWithHint: true,
+                      prefixIcon: Icon(Icons.notes_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: hedefZamani,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Hedef türü',
+                      prefixIcon: Icon(Icons.schedule_rounded),
+                    ),
+                    items: hedefZamanlari
+                        .map(
+                          (zaman) => DropdownMenuItem(
+                            value: zaman,
+                            child: Text(zaman),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _saving
+                        ? null
+                        : (value) {
+                            setState(() {
+                              hedefZamani = value;
+                              if (value == 'Günlük Hedef') {
+                                secilenTarih = null;
+                              }
+                            });
+                          },
+                  ),
+                  if (hedefZamani == 'Haftalık Hedef' ||
+                      hedefZamani == 'Aylık Hedef') ...[
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: _saving ? null : tarihSec,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Bitiş tarihi',
+                          prefixIcon: Icon(Icons.event_available_outlined),
+                          suffixIcon: Icon(Icons.calendar_month_outlined),
+                        ),
+                        child: Text(
+                          secilenTarih == null
+                              ? 'Tarih seç'
+                              : '${secilenTarih!.day.toString().padLeft(2, '0')}.${secilenTarih!.month.toString().padLeft(2, '0')}.${secilenTarih!.year}',
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton<String>(
-                hint: const Text("Hedef Zamanı Seç"),
-                value: hedefZamani,
-                isExpanded: true,
-                items: hedefZamanlari.map((zaman) {
-                  return DropdownMenuItem(
-                    value: zaman,
-                    child: Text(zaman),
-                  );
-                }).toList(),
-                onChanged: (yeniDeger) async {
-                  setState(() {
-                    hedefZamani = yeniDeger;
-                  });
-                  if (yeniDeger == "Haftalık Hedef" || yeniDeger == "Aylık Hedef") {
-                    await tarihSec(context);
-                  }
-                },
-              ),
-            ),
-            if (secilenTarih != null)
-              Text(
-                "Seçilen Tarih: ${secilenTarih!.day}/${secilenTarih!.month}/${secilenTarih!.year}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ElevatedButton(
-              onPressed: hedefEkle,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Ekle"),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _saving ? null : hedefEkle,
+              icon: _saving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.add_task_rounded),
+              label: Text(_saving ? 'Kaydediliyor...' : 'Hedefi Kaydet'),
             ),
           ],
         ),

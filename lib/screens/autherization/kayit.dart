@@ -1,175 +1,227 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class RegisterPage extends StatefulWidget {
+import '../../app/router.dart';
+import '../../core/errors/auth_error_mapper.dart';
+import '../../features/auth/presentation/providers/auth_providers.dart';
+import 'auth_visuals.dart';
+
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool  loading = false;
+  bool loading = false;
+  bool obscurePassword = true;
+  bool obscureConfirm = true;
 
-  void register() async {
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> register() async {
     final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final confirm = confirmController.text.trim();
+    final password = passwordController.text;
+    final confirm = confirmController.text;
 
     if (email.isEmpty || password.isEmpty || confirm.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lütfen tüm alanları doldurun")),
-      );
+      _showMessage('Lütfen tüm alanları doldurun.');
       return;
     }
 
     if (password != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Şifreler eşleşmiyor")),
-      );
+      _showMessage('Şifreler eşleşmiyor.');
+      return;
+    }
+
+    if (password.length < 6) {
+      _showMessage('Şifre en az 6 karakter olmalı.');
       return;
     }
 
     setState(() => loading = true);
 
     try {
-      // Firebase kaydı
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final success = await ref
+          .read(authControllerProvider.notifier)
+          .register(email: email, password: password);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kayıt başarılı!")),
-      );
-
-      // GoRouter ile yönlendirme
-      context.go('/home');
-    } on FirebaseAuthException catch (e) {
-      String message = e.message ?? "Kayıt yapılamadı";
-
-      if (e.code == 'email-already-in-use') {
-        message = "Bu e-posta zaten kayıtlı. Lütfen giriş yapın.";
-      } else if (e.code == 'weak-password') {
-        message = "Şifre çok zayıf. En az 6 karakter olmalı.";
-      } else if (e.code == 'invalid-email') {
-        message = "Geçersiz e-posta adresi.";
+      if (!mounted) return;
+      if (success) {
+        _showMessage('Hesabın oluşturuldu.');
+        context.go(AppRoutes.home);
+      } else {
+        final state = ref.read(authControllerProvider);
+        if (state.hasError) {
+          _showMessage(AuthErrorMapper.message(state.error!));
+        }
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
     } finally {
-      setState(() => loading = false);
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(
-            top: -80,
-            left: -80,
-            child: Container(
-              height: 200,
-              width: 200,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -100,
-            right: -100,
-            child: Container(
-              height: 250,
-              width: 250,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFFFF6FD8), Color(0xFF3813C2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 50),
+      body: AuthBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Hesap Oluştur",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
+                  const AuthBrand(
+                    title: 'Hedefine bugün başla',
+                    subtitle:
+                        'Çalışma düzenini kur, çözümlerini kaydet ve gelişimini tek ekrandan takip et.',
+                    icon: Icons.rocket_launch_rounded,
                   ),
-                  const SizedBox(height: 30),
-                  TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      labelText: "E-posta",
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  const SizedBox(height: 18),
+                  const AuthFeaturePills(),
+                  const SizedBox(height: 22),
+                  AuthCard(
+                    child: AutofillGroup(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Hesap oluştur',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Başlamak için e-posta ve şifreni belirle.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AuthVisuals.muted,
+                                ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: const InputDecoration(
+                              labelText: 'E-posta',
+                              hintText: 'ornek@email.com',
+                              prefixIcon: Icon(Icons.mail_outline_rounded),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: obscurePassword,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.newPassword],
+                            decoration: InputDecoration(
+                              labelText: 'Şifre',
+                              helperText: 'En az 6 karakter',
+                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              suffixIcon: IconButton(
+                                tooltip: obscurePassword
+                                    ? 'Şifreyi göster'
+                                    : 'Şifreyi gizle',
+                                onPressed: () => setState(
+                                  () => obscurePassword = !obscurePassword,
+                                ),
+                                icon: Icon(
+                                  obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: confirmController,
+                            obscureText: obscureConfirm,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.newPassword],
+                            onSubmitted: (_) => loading ? null : register(),
+                            decoration: InputDecoration(
+                              labelText: 'Şifre Tekrar',
+                              prefixIcon: const Icon(Icons.lock_reset_outlined),
+                              suffixIcon: IconButton(
+                                tooltip: obscureConfirm
+                                    ? 'Şifreyi göster'
+                                    : 'Şifreyi gizle',
+                                onPressed: () => setState(
+                                  () => obscureConfirm = !obscureConfirm,
+                                ),
+                                icon: Icon(
+                                  obscureConfirm
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          FilledButton.icon(
+                            onPressed: loading ? null : register,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.4,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.person_add_alt_1_rounded),
+                            label: Text(loading ? 'Hesap oluşturuluyor...' : 'Kayıt Ol'),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(54),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Şifre",
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Zaten hesabın var mı?'),
+                      const SizedBox(width: 4),
+                      TextButton(
+                        onPressed: loading
+                            ? null
+                            : () => context.go(AppRoutes.login),
+                        child: const Text('Giriş Yap'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: confirmController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Şifre Tekrar",
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: loading ? null : register,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      backgroundColor: Colors.deepPurpleAccent,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: loading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Kayıt Ol", style: TextStyle(fontSize: 18)),
-                  ),
-                  const SizedBox(height: 15),
-                  TextButton(
-                    onPressed: () {
-                      context.go('/login');
-                    },
-                    child: const Text("Zaten hesabın var mı? Giriş Yap"),
-                  )
                 ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

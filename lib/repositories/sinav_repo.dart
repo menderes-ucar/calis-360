@@ -1,70 +1,71 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/sınav.dart';
+
+import '../models/sinav.dart';
 
 class SinavRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  SinavRepository({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  }) : _firestore = firestore,
+       _auth = auth;
 
-  /// Sınav ekleme (kendi UID altında)
-  Future<void> addSinav(Sinav sinav) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sinavlar")
-        .doc(sinav.sinavId)
-        .set(sinav.toJson());
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  String? get _uid => _auth.currentUser?.uid;
+
+  String _requireUid() {
+    final uid = _uid;
+    if (uid == null) {
+      throw StateError('Sınav işlemi için aktif oturum gerekli.');
+    }
+    return uid;
   }
 
-  /// Tüm sınavları listeleme (kendi UID)
-  Stream<List<Sinav>> getSinavlar() {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    return _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sinavlar")
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Sinav.fromJson(doc.data(), doc.id);
-      }).toList();
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _firestore.collection('users').doc(uid).collection('sinavlar');
+  }
+
+  String createId() => _collection(_requireUid()).doc().id;
+
+  Future<void> addSinav(Sinav sinav) async {
+    final uid = _requireUid();
+    await _collection(uid).doc(sinav.sinavId).set({
+      ...sinav.toJson(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
-  /// Tek bir sınavı getirme (kendi UID)
+  Stream<List<Sinav>> getSinavlar() {
+    final uid = _uid;
+    if (uid == null) return Stream.value(const <Sinav>[]);
+
+    return _collection(uid).snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => Sinav.fromJson(doc.data(), doc.id))
+          .toList(),
+    );
+  }
+
   Future<Sinav?> getSinav(String id) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final doc = await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sinavlar")
-        .doc(id)
-        .get();
-    if (doc.exists) {
-      return Sinav.fromJson(doc.data()!, doc.id);
-    }
-    return null;
+    final uid = _requireUid();
+    final doc = await _collection(uid).doc(id).get();
+    final data = doc.data();
+    return data == null ? null : Sinav.fromJson(data, doc.id);
   }
 
-  /// Sınav güncelleme (kendi UID)
   Future<void> updateSinav(Sinav sinav) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sinavlar")
-        .doc(sinav.sinavId)
-        .update(sinav.toJson());
+    final uid = _requireUid();
+    await _collection(uid).doc(sinav.sinavId).update({
+      ...sinav.toJson(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  /// Sınav silme (kendi UID)
   Future<void> deleteSinav(String id) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    await _firestore
-        .collection("users")
-        .doc(uid)
-        .collection("sinavlar")
-        .doc(id)
-        .delete();
+    final uid = _requireUid();
+    await _collection(uid).doc(id).delete();
   }
 }

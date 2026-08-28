@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+
 import '../../models/sinav_takvimi.dart';
 
 class SinavTakvimiWidget extends StatefulWidget {
   final List<SinavTakvimi> sinavlar;
+
   const SinavTakvimiWidget({super.key, required this.sinavlar});
 
   @override
@@ -16,6 +18,8 @@ class _SinavTakvimiWidgetState extends State<SinavTakvimiWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TableCalendar(
       focusedDay: _focusedDay,
       firstDay: DateTime(2000),
@@ -28,24 +32,67 @@ class _SinavTakvimiWidgetState extends State<SinavTakvimiWidget> {
         });
       },
       calendarFormat: CalendarFormat.month,
-      rowHeight: 50,
-      daysOfWeekHeight: 28,
+      rowHeight: 48,
+      daysOfWeekHeight: 30,
+      headerStyle: HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: false,
+        leftChevronPadding: const EdgeInsets.all(8),
+        rightChevronPadding: const EdgeInsets.all(8),
+        titleTextStyle: theme.textTheme.titleMedium!.copyWith(
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      daysOfWeekStyle: DaysOfWeekStyle(
+        weekdayStyle: theme.textTheme.labelSmall!.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
+        weekendStyle: theme.textTheme.labelSmall!.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      calendarStyle: CalendarStyle(
+        outsideDaysVisible: false,
+        defaultTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+        weekendTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+        selectedDecoration: BoxDecoration(
+          color: theme.colorScheme.primary,
+          shape: BoxShape.circle,
+        ),
+        selectedTextStyle: TextStyle(
+          color: theme.colorScheme.onPrimary,
+          fontWeight: FontWeight.w900,
+        ),
+        todayDecoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          shape: BoxShape.circle,
+        ),
+        todayTextStyle: TextStyle(
+          color: theme.colorScheme.onSurface,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
       calendarBuilders: CalendarBuilders(
         markerBuilder: (context, day, events) {
-          final bugunSinav = widget.sinavlar.where((s) => isSameDay(s.sinavZamani, day)).toList();
+          final bugunSinav = widget.sinavlar
+              .where((s) => isSameDay(s.sinavZamani, day))
+              .toList(growable: false);
           if (bugunSinav.isEmpty) return null;
 
-          Color renk = Colors.black;
-          if (bugunSinav.any((s) => s.sinavTur == "TYT")) renk = Colors.blue;
-          else if (bugunSinav.any((s) => s.sinavTur == "AYT")) renk = Colors.red;
-
-          return Container(
-            margin: const EdgeInsets.only(top: 30),
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: renk,
-              shape: BoxShape.circle,
+          final hasTyt = bugunSinav.any((s) => s.sinavTur == 'TYT');
+          return Positioned(
+            bottom: 4,
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: hasTyt
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+                shape: BoxShape.circle,
+              ),
             ),
           );
         },
