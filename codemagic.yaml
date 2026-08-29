@@ -13,6 +13,23 @@ workflows:
       app_store_connect: Codemagic
 
     scripts:
+      - name: Restore Firebase configuration
+        script: |
+          echo "$FIREBASE_OPTIONS_B64" | base64 --decode > lib/firebase_options.dart
+          echo "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
+
+          test -s lib/firebase_options.dart || {
+            echo "ERROR: lib/firebase_options.dart missing or empty"
+            exit 1
+          }
+
+          test -s ios/Runner/GoogleService-Info.plist || {
+            echo "ERROR: GoogleService-Info.plist missing or empty"
+            exit 1
+          }
+
+          echo "Firebase files restored successfully"
+
       - name: Get Flutter packages
         script: |
           flutter pub get
@@ -33,5 +50,6 @@ workflows:
       - name: Build IPA
         script: |
           flutter build ipa --release --export-method=app-store
+
     artifacts:
       - build/ios/ipa/*.ipa
