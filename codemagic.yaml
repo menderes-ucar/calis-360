@@ -4,8 +4,6 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      groups:
-        - firebase
       flutter: stable
       ios_signing:
         distribution_type: app_store
@@ -15,10 +13,24 @@ workflows:
       app_store_connect: Codemagic
 
     scripts:
+      - name: Check Firebase environment variables
+        script: |
+          if [ -z "$FIREBASE_OPTIONS_B64" ]; then
+            echo "ERROR: FIREBASE_OPTIONS_B64 is not available in Codemagic"
+            exit 1
+          fi
+
+          if [ -z "$GOOGLE_SERVICE_INFO_PLIST_B64" ]; then
+            echo "ERROR: GOOGLE_SERVICE_INFO_PLIST_B64 is not available in Codemagic"
+            exit 1
+          fi
+
+          echo "Firebase environment variables found"
+
       - name: Restore Firebase configuration
         script: |
-          echo "$FIREBASE_OPTIONS_B64" | base64 --decode > lib/firebase_options.dart
-          echo "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          printf '%s' "$FIREBASE_OPTIONS_B64" | base64 --decode > lib/firebase_options.dart
+          printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
 
           test -s lib/firebase_options.dart || {
             echo "ERROR: lib/firebase_options.dart missing or empty"
@@ -26,7 +38,7 @@ workflows:
           }
 
           test -s ios/Runner/GoogleService-Info.plist || {
-            echo "ERROR: GoogleService-Info.plist missing or empty"
+            echo "ERROR: ios/Runner/GoogleService-Info.plist missing or empty"
             exit 1
           }
 
