@@ -5,7 +5,7 @@ workflows:
 
     environment:
       groups:
-        - ON
+        - "ON"
       flutter: stable
       ios_signing:
         distribution_type: app_store
