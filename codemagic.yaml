@@ -67,8 +67,31 @@ workflows:
         script: |
           flutter build ipa --release --export-method=app-store
 
+      - name: Verify generated IPA
+        script: |
+          echo "======================================"
+          echo "SEARCHING FOR GENERATED IPA"
+          echo "======================================"
+
+          find "$CM_BUILD_DIR" -type f -name "*.ipa" -print
+
+          IPA_COUNT=$(find "$CM_BUILD_DIR" -type f -name "*.ipa" | wc -l | tr -d ' ')
+
+          echo "IPA count: $IPA_COUNT"
+
+          if [ "$IPA_COUNT" -eq 0 ]; then
+            echo "ERROR: No IPA file was generated."
+            echo ""
+            echo "Contents of build/ios:"
+            find "$CM_BUILD_DIR/build/ios" -maxdepth 5 -type f -print 2>/dev/null | tail -200
+            exit 1
+          fi
+
+          echo "IPA generated successfully."
+
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
 
     publishing:
       app_store_connect:
