@@ -13,9 +13,25 @@ workflows:
       app_store_connect: Codemagic
 
     scripts:
-      - flutter pub get
-      - xcode-project use-profiles
-      - flutter build ipa --release --export-method=app-store
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
 
+      - name: Clean iOS pods
+        script: |
+          cd ios
+          rm -rf Pods
+          rm -f Podfile.lock
+          pod repo update
+          pod install
+          cd ..
+
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release --export-method=app-store
     artifacts:
       - build/ios/ipa/*.ipa

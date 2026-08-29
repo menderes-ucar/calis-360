@@ -55,3 +55,7 @@ flutter:
     - images/ic_launcher.png
     - assets/content/starter_content.json
 
+
+  config:
+    enable-swift-package-manager: false
+
