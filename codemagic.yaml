@@ -2,11 +2,15 @@ workflows:
   ios-release:
     name: iOS Release
     instance_type: mac_mini_m2
+    max_build_duration: 120
 
     environment:
       groups:
         - "ON"
       flutter: stable
+      xcode: latest
+      cocoapods: default
+
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.menderesucar.calis360
@@ -34,15 +38,15 @@ workflows:
           printf '%s' "$FIREBASE_OPTIONS_B64" | base64 --decode > lib/firebase_options.dart
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
 
-          test -s lib/firebase_options.dart || {
+          if [ ! -s "lib/firebase_options.dart" ]; then
             echo "ERROR: lib/firebase_options.dart missing or empty"
             exit 1
-          }
+          fi
 
-          test -s ios/Runner/GoogleService-Info.plist || {
+          if [ ! -s "ios/Runner/GoogleService-Info.plist" ]; then
             echo "ERROR: ios/Runner/GoogleService-Info.plist missing or empty"
             exit 1
-          }
+          fi
 
           echo "Firebase files restored successfully"
 
@@ -50,22 +54,31 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Clean iOS pods
+      - name: Clean and install iOS pods
         script: |
           cd ios
           rm -rf Pods
           rm -f Podfile.lock
-          pod repo update
-          pod install
+          pod install --repo-update
           cd ..
 
-      - name: Set up code signing
+      - name: Set up iOS code signing
         script: |
           xcode-project use-profiles
 
+          echo "=== EXPORT OPTIONS ==="
+          if [ ! -f "/Users/builder/export_options.plist" ]; then
+            echo "ERROR: /Users/builder/export_options.plist was not generated"
+            exit 1
+          fi
+
+          plutil -p /Users/builder/export_options.plist
+
       - name: Build IPA
         script: |
-          flutter build ipa --release --export-method=app-store
+          flutter build ipa \
+            --release \
+            --export-options-plist=/Users/builder/export_options.plist
 
       - name: Verify generated IPA
         script: |
@@ -73,25 +86,24 @@ workflows:
           echo "SEARCHING FOR GENERATED IPA"
           echo "======================================"
 
-          find "$CM_BUILD_DIR" -type f -name "*.ipa" -print
+          find "$CM_BUILD_DIR/build/ios" -type f -name "*.ipa" -print
 
-          IPA_COUNT=$(find "$CM_BUILD_DIR" -type f -name "*.ipa" | wc -l | tr -d ' ')
+          IPA_COUNT=$(find "$CM_BUILD_DIR/build/ios" -type f -name "*.ipa" | wc -l | tr -d ' ')
 
           echo "IPA count: $IPA_COUNT"
 
           if [ "$IPA_COUNT" -eq 0 ]; then
             echo "ERROR: No IPA file was generated."
-            echo ""
-            echo "Contents of build/ios:"
+            echo "Archive contents:"
             find "$CM_BUILD_DIR/build/ios" -maxdepth 5 -type f -print 2>/dev/null | tail -200
             exit 1
           fi
 
-          echo "IPA generated successfully."
+          echo "IPA generated successfully"
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
+      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
