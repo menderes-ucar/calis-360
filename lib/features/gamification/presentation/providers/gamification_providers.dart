@@ -1,12 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../ai_solver/domain/ai_solution.dart';
-import '../../../ai_solver/presentation/providers/ai_solver_providers.dart';
-import '../../../study_data/presentation/providers/study_data_providers.dart';
+import '../../../../core/firebase/firebase_providers.dart';
 import '../../../../models/dersProgrami.dart';
+import '../../../../models/hedef.dart';
 import '../../../../models/sinav.dart';
 import '../../../../models/soru.dart';
+import '../../../ai_solver/domain/ai_solution.dart';
+import '../../../ai_solver/presentation/providers/ai_solver_providers.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../study_data/presentation/providers/study_data_providers.dart';
+import '../../data/gamification_repository.dart';
 import '../../domain/gamification_summary.dart';
+import '../../domain/leaderboard_entry.dart';
+
+final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
+  return GamificationRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
+final studyActivityDaysProvider = StreamProvider.autoDispose<List<DateTime>>((ref) {
+  return ref.watch(gamificationRepositoryProvider).watchActivityDays();
+});
+
+final leaderboardEntriesProvider =
+    StreamProvider.autoDispose<List<LeaderboardEntry>>((ref) {
+  return ref.watch(gamificationRepositoryProvider).watchTopLeaderboard();
+});
+
+final leaderboardRankProvider = FutureProvider.autoDispose<int>((ref) async {
+  await ref.watch(leaderboardSyncProvider.future);
+  return ref.watch(gamificationRepositoryProvider).getCurrentUserRank();
+});
 
 final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
   ref,
@@ -15,8 +41,16 @@ final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
   final exams = ref.watch(sinavlarProvider);
   final aiHistory = ref.watch(aiHistoryProvider);
   final plans = ref.watch(dersProgramiProvider);
+  final goals = ref.watch(hedeflerProvider);
+  final loggedActivityDays = ref.watch(studyActivityDaysProvider);
 
-  final error = _firstError([questions, exams, aiHistory, plans]);
+  final error = _firstError([
+    questions,
+    exams,
+    aiHistory,
+    plans,
+    goals,
+  ]);
   if (error != null) {
     return AsyncError(error, StackTrace.current);
   }
@@ -24,7 +58,8 @@ final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
   if (questions.isLoading ||
       exams.isLoading ||
       aiHistory.isLoading ||
-      plans.isLoading) {
+      plans.isLoading ||
+      goals.isLoading) {
     return const AsyncLoading();
   }
 
@@ -32,6 +67,8 @@ final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
   final examList = exams.valueOrNull ?? const <Sinav>[];
   final aiList = aiHistory.valueOrNull ?? const <AiSolution>[];
   final planList = plans.valueOrNull ?? const <DersProgram>[];
+  final goalList = goals.valueOrNull ?? const <Hedef>[];
+  final activityList = loggedActivityDays.valueOrNull ?? const <DateTime>[];
 
   return AsyncData(
     _buildSummary(
@@ -39,8 +76,28 @@ final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
       exams: examList,
       aiHistory: aiList,
       plans: planList,
+      goals: goalList,
+      loggedActivityDays: activityList,
     ),
   );
+});
+
+final leaderboardSyncProvider = FutureProvider.autoDispose<void>((ref) async {
+  final summaryValue = ref.watch(gamificationSummaryProvider);
+  final userValue = ref.watch(currentAppUserProvider);
+  final summary = summaryValue.valueOrNull;
+  final user = userValue.valueOrNull;
+
+  if (summary == null || user == null) return;
+
+  final name = user.displayName?.trim().isNotEmpty == true
+      ? user.displayName!.trim()
+      : 'Çalış 360 Öğrencisi';
+
+  await ref.read(gamificationRepositoryProvider).syncLeaderboard(
+        displayName: name,
+        summary: summary,
+      );
 });
 
 Object? _firstError(List<AsyncValue<dynamic>> values) {
@@ -55,21 +112,16 @@ GamificationSummary _buildSummary({
   required List<Sinav> exams,
   required List<AiSolution> aiHistory,
   required List<DersProgram> plans,
+  required List<Hedef> goals,
+  required List<DateTime> loggedActivityDays,
 }) {
   final correct = questions.where((item) => item.isCorrect).length;
   final wrong = questions.where((item) => item.isWrong).length;
+  final reviewOrUnresolved = questions
+      .where((item) => item.isUnresolved || item.needsReview)
+      .length;
   final completedPlans = plans.where((item) => item.tamamlandi).length;
-
-  // Skor, yalnızca kullanıcının mevcut kayıtlarından hesaplanır. Sunucu tarafında
-  // kalıcı leaderboard'a geçildiğinde aynı formül tek kaynaktan yönetilebilir.
-  final score =
-      (aiHistory.length * 12) +
-      (correct * 8) +
-      (wrong * 3) +
-      (questions.where((item) => item.isUnresolved || item.needsReview).length *
-          2) +
-      (exams.length * 20) +
-      (completedPlans * 6);
+  final completedGoals = goals.where((item) => item.tamamlandi).length;
 
   final activityDays = <DateTime>{};
 
@@ -79,6 +131,9 @@ GamificationSummary _buildSummary({
     activityDays.add(DateTime(local.year, local.month, local.day));
   }
 
+  for (final value in loggedActivityDays) {
+    addDate(value);
+  }
   for (final item in questions) {
     addDate(item.createdAt ?? item.updatedAt);
   }
@@ -91,25 +146,59 @@ GamificationSummary _buildSummary({
   for (final item in plans.where((item) => item.tamamlandi)) {
     addDate(item.updatedAt ?? item.createdAt);
   }
+  for (final item in goals.where((item) => item.tamamlandi)) {
+    addDate(item.updatedAt ?? item.createdAt);
+  }
 
   final streaks = _calculateStreaks(activityDays);
+
+  // Dengeli puan formülü:
+  // doğru soru 10, yanlış soru 3, tekrar/bekleyen soru 1,
+  // tamamlanmış AI çözümü 4, deneme 25, tamamlanan çalışma 10,
+  // tamamlanan hedef 10 ve aktif olunan her benzersiz gün 5 puan.
+  // Böylece yalnızca kredi harcamak puanı domine etmez; düzenli çalışma,
+  // doğru cevap ve tamamlanan planlar daha fazla ağırlık taşır.
+  final score =
+      (correct * 10) +
+      (wrong * 3) +
+      (reviewOrUnresolved * 1) +
+      (aiHistory.length * 4) +
+      (exams.length * 25) +
+      (completedPlans * 10) +
+      (completedGoals * 10) +
+      (activityDays.length * 5);
+
+  final aiRequestIds = aiHistory
+      .map((item) => item.requestId.trim())
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  final nonDuplicateQuestions = questions.where((item) {
+    final requestId = item.aiRequestId?.trim();
+    return requestId == null || requestId.isEmpty || !aiRequestIds.contains(requestId);
+  }).length;
 
   return GamificationSummary(
     score: score,
     currentStreak: streaks.$1,
     longestStreak: streaks.$2,
-    solvedCount: aiHistory.length + questions.length,
+    solvedCount: aiHistory.length + nonDuplicateQuestions,
     correctCount: correct,
     wrongCount: wrong,
     completedStudyCount: completedPlans,
+    completedGoalCount: completedGoals,
     examCount: exams.length,
+    activeDayCount: activityDays.length,
   );
 }
 
 (int, int) _calculateStreaks(Set<DateTime> activityDays) {
   if (activityDays.isEmpty) return (0, 0);
 
-  final sorted = activityDays.toList()..sort();
+  final normalized = activityDays
+      .map((day) => DateTime(day.year, day.month, day.day))
+      .toSet();
+  final sorted = normalized.toList()..sort();
+
   var longest = 1;
   var running = 1;
 
@@ -127,10 +216,12 @@ GamificationSummary _buildSummary({
   final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
 
+  // Kullanıcı bugün henüz çalışmadıysa dün biten seri gün sonuna kadar korunur.
+  // Dün de aktivite yoksa seri gerçekten kırılmış kabul edilir.
   DateTime? cursor;
-  if (activityDays.contains(today)) {
+  if (normalized.contains(today)) {
     cursor = today;
-  } else if (activityDays.contains(yesterday)) {
+  } else if (normalized.contains(yesterday)) {
     cursor = yesterday;
   }
 
@@ -138,7 +229,7 @@ GamificationSummary _buildSummary({
 
   var streakCursor = cursor;
   var current = 0;
-  while (activityDays.contains(streakCursor)) {
+  while (normalized.contains(streakCursor)) {
     current += 1;
     streakCursor = streakCursor.subtract(const Duration(days: 1));
   }
