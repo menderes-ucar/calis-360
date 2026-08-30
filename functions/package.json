@@ -7,7 +7,7 @@
     "node": "22"
   },
   "scripts": {
-    "lint": "node --check src/index.js && node --check src/account.js && node --check src/ai_solver.js && node --check src/billing.js && node --check src/ai/provider_router.js && node --check src/ai/providers/groq_provider.js && node --check src/ai/providers/openrouter_provider.js && node --check src/ai/providers/cloudflare_provider.js && node --check src/ai/providers/gemini_provider.js && node --check src/services/billing_ledger.js && node --check src/services/billing_catalog.js && node --check src/services/google_play_billing.js && node --check src/services/notification_sender.js && node --check src/jobs/smart_reminders.js && node scripts/regression_check.mjs",
+    "lint": "node --check src/index.js && node --check src/account.js && node --check src/ai_solver.js && node --check src/study_planner.js && node --check src/billing.js && node --check src/ai/provider_router.js && node --check src/ai/providers/groq_provider.js && node --check src/ai/providers/openrouter_provider.js && node --check src/ai/providers/cloudflare_provider.js && node --check src/ai/providers/gemini_provider.js && node --check src/services/billing_ledger.js && node --check src/services/billing_catalog.js && node --check src/services/google_play_billing.js && node --check src/services/notification_sender.js && node --check src/jobs/smart_reminders.js && node scripts/regression_check.mjs",
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 
 import { deleteCurrentAccountHandler } from './account.js';
 import { solveQuestionWithAiHandler } from './ai_solver.js';
+import { generateWeeklyStudyPlanHandler } from './study_planner.js';
 import { authorizeAudioLessonHandler } from './audio_access.js';
 import {
   getBillingCatalogHandler,
@@ -50,6 +51,7 @@ export const sendDailyReminderDigest = onSchedule(
 
 export const deleteCurrentAccount = deleteCurrentAccountHandler;
 export const solveQuestionWithAi = solveQuestionWithAiHandler;
+export const generateWeeklyStudyPlan = generateWeeklyStudyPlanHandler;
 export const authorizeAudioLesson = authorizeAudioLessonHandler;
 
 export const getBillingCatalog = getBillingCatalogHandler;
