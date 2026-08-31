@@ -6,7 +6,9 @@ import '../../core/widgets/section_hero_card.dart';
 import '../../features/study_data/presentation/providers/study_data_providers.dart';
 
 class DersprogramiEkle extends ConsumerStatefulWidget {
-  const DersprogramiEkle({super.key});
+  const DersprogramiEkle({super.key, this.initialWeekNumber = 1});
+
+  final int initialWeekNumber;
 
   @override
   ConsumerState<DersprogramiEkle> createState() => _DersprogramiEkleState();
@@ -428,7 +430,6 @@ class _DersprogramiEkleState extends ConsumerState<DersprogramiEkle> {
   Future<void> programEkle() async {
     if (secilenSinav == null ||
         secilenDers == null ||
-        secilenKonu == null ||
         secilenGun == null ||
         saatText.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -453,10 +454,11 @@ class _DersprogramiEkleState extends ConsumerState<DersprogramiEkle> {
     final yeni = DersProgram(
       dersProgramId: repository.createId(),
       dersProgramDersAd: secilenDers!,
-      dersProgramKonuAd: secilenKonu!,
+      dersProgramKonuAd: secilenKonu ?? '',
       dersProgramGun: secilenGun!,
       dersProgramSaat: saat,
       dersProgramSinavTur: secilenSinav!,
+      weekNumber: widget.initialWeekNumber,
     );
 
     try {
@@ -486,11 +488,11 @@ class _DersprogramiEkleState extends ConsumerState<DersprogramiEkle> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
         children: [
-          const SectionHeroCard(
+          SectionHeroCard(
             icon: Icons.event_note_outlined,
-            title: 'Yeni çalışma planı',
+            title: '${widget.initialWeekNumber}. haftaya çalışma ekle',
             subtitle:
-                'Sınav türünü, dersi, konuyu ve zamanı seç; planın haftalık programına otomatik yerleşsin.',
+                'Sınav türünü, dersi, konuyu ve zamanı seç; çalışma ${widget.initialWeekNumber}. haftaya eklensin.',
           ),
           const SizedBox(height: 20),
           Card(
@@ -557,7 +559,7 @@ class _DersprogramiEkleState extends ConsumerState<DersprogramiEkle> {
                     value: secilenKonu,
                     isExpanded: true,
                     decoration: const InputDecoration(
-                      labelText: 'Konu',
+                      labelText: 'Konu (isteğe bağlı)',
                       prefixIcon: Icon(Icons.topic_outlined),
                     ),
                     items:

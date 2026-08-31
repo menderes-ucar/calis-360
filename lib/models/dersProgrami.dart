@@ -9,6 +9,9 @@ class DersProgram {
   final String dersProgramGun;
   final int dersProgramSaat;
   final bool tamamlandi;
+  final int durationMinutes;
+  final String source;
+  final int weekNumber;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -20,6 +23,9 @@ class DersProgram {
     required this.dersProgramGun,
     required this.dersProgramSaat,
     this.tamamlandi = false,
+    this.durationMinutes = 60,
+    this.source = 'manual',
+    this.weekNumber = 1,
     this.createdAt,
     this.updatedAt,
   });
@@ -38,6 +44,13 @@ class DersProgram {
           ? (json['dersProgramSaat'] as num).toInt()
           : int.tryParse((json['dersProgramSaat'] ?? '0').toString()) ?? 0,
       tamamlandi: json['tamamlandi'] == true,
+      durationMinutes: (json['durationMinutes'] ?? 60) is num
+          ? (json['durationMinutes'] as num).toInt()
+          : int.tryParse((json['durationMinutes'] ?? '60').toString()) ?? 60,
+      source: (json['source'] ?? 'manual').toString(),
+      weekNumber: (json['weekNumber'] ?? 1) is num
+          ? (json['weekNumber'] as num).toInt()
+          : int.tryParse((json['weekNumber'] ?? '1').toString()) ?? 1,
       createdAt: readDate(json['createdAt']),
       updatedAt: readDate(json['updatedAt']),
     );
@@ -51,6 +64,9 @@ class DersProgram {
       'dersProgramGun': dersProgramGun,
       'dersProgramSaat': dersProgramSaat,
       'tamamlandi': tamamlandi,
+      'durationMinutes': durationMinutes,
+      'source': source,
+      'weekNumber': weekNumber,
     };
   }
 }

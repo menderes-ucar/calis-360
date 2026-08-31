@@ -7,6 +7,7 @@ import '../../app/router.dart';
 import '../../core/errors/auth_error_mapper.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/study_data/presentation/providers/study_data_providers.dart';
+import '../../features/study_planner/presentation/screens/ai_study_planner_screen.dart';
 import '../../models/dersProgrami.dart';
 import '../../models/sinav_takvimi.dart';
 import '../../widgets/ders_program_widget/takvim_widget.dart';
@@ -22,6 +23,7 @@ class Dersprogrami extends ConsumerStatefulWidget {
 
 class _DersprogramiState extends ConsumerState<Dersprogrami> {
   String seciliFiltre = 'Pazartesi';
+  int seciliHafta = 1;
 
   static const _gunler = <String>[
     'Pazartesi',
@@ -57,9 +59,166 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
   }
 
   Future<void> _openAddProgram() async {
-    await Navigator.of(
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DersprogramiEkle(initialWeekNumber: seciliHafta),
+      ),
+    );
+  }
+
+  Future<void> _openAiPlanner() async {
+    final week = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (_) => AiStudyPlannerScreen(initialWeekNumber: seciliHafta),
+      ),
+    );
+    if (!mounted || week == null) return;
+    setState(() => seciliHafta = week);
+    ScaffoldMessenger.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const DersprogramiEkle()));
+    ).showSnackBar(SnackBar(content: Text('$week. hafta programın açıldı.')));
+  }
+
+  Future<void> _editProgram(DersProgram item) async {
+    final dersController = TextEditingController(text: item.dersProgramDersAd);
+    final konuController = TextEditingController(text: item.dersProgramKonuAd);
+    final saatController = TextEditingController(
+      text: item.dersProgramSaat.toString(),
+    );
+    final sureController = TextEditingController(
+      text: item.durationMinutes.toString(),
+    );
+    var gun = item.dersProgramGun;
+    var hafta = item.weekNumber;
+
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Çalışmayı Düzenle'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: dersController,
+                  decoration: const InputDecoration(labelText: 'Ders'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: konuController,
+                  decoration: const InputDecoration(
+                    labelText: 'Konu (isteğe bağlı)',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: gun,
+                  decoration: const InputDecoration(labelText: 'Gün'),
+                  items: _gunler
+                      .map(
+                        (value) =>
+                            DropdownMenuItem(value: value, child: Text(value)),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) setDialogState(() => gun = value);
+                  },
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<int>(
+                  value: hafta,
+                  decoration: const InputDecoration(labelText: 'Hafta'),
+                  items: List.generate(
+                    52,
+                    (index) => DropdownMenuItem(
+                      value: index + 1,
+                      child: Text('${index + 1}. Hafta'),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value != null) setDialogState(() => hafta = value);
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: saatController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Başlangıç saati (0-23)',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: sureController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Süre (dakika)'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Vazgeç'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Kaydet'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (save == true && mounted) {
+      final ders = dersController.text.trim();
+      final saat = int.tryParse(saatController.text.trim());
+      final sure = int.tryParse(sureController.text.trim());
+      if (ders.isEmpty ||
+          saat == null ||
+          saat < 0 ||
+          saat > 23 ||
+          sure == null ||
+          sure < 20 ||
+          sure > 240) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ders, saat ve süre bilgilerini kontrol et.'),
+          ),
+        );
+      } else {
+        await ref
+            .read(dersProgramiRepositoryProvider)
+            .updateDersProgram(
+              DersProgram(
+                dersProgramId: item.dersProgramId,
+                dersProgramSinavTur: item.dersProgramSinavTur,
+                dersProgramDersAd: ders,
+                dersProgramKonuAd: konuController.text.trim(),
+                dersProgramGun: gun,
+                dersProgramSaat: saat,
+                tamamlandi: item.tamamlandi,
+                durationMinutes: sure,
+                source: item.source,
+                weekNumber: hafta,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+              ),
+            );
+        if (mounted) {
+          setState(() => seciliHafta = hafta);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Çalışma güncellendi.')));
+        }
+      }
+    }
+
+    dersController.dispose();
+    konuController.dispose();
+    saatController.dispose();
+    sureController.dispose();
   }
 
   @override
@@ -81,14 +240,28 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
         stream: ref.read(dersProgramiRepositoryProvider).getDersProgram(),
         builder: (context, programSnapshot) {
           final tumProgram = programSnapshot.data ?? const <DersProgram>[];
-          final completed = tumProgram.where((item) => item.tamamlandi).length;
-          final total = tumProgram.length;
+          final weeks =
+              tumProgram.map((item) => item.weekNumber).toSet().toList()
+                ..sort();
+          if (weeks.isNotEmpty && !weeks.contains(seciliHafta)) {
+            seciliHafta = weeks.last;
+          }
+          final selectedWeekItems = tumProgram
+              .where((item) => item.weekNumber == seciliHafta)
+              .toList(growable: false);
+          final completed = selectedWeekItems
+              .where((item) => item.tamamlandi)
+              .length;
+          final total = selectedWeekItems.length;
           final completionRate = total == 0 ? 0.0 : completed / total;
           final filter = seciliFiltre.trim().toLowerCase();
-          final filtered = tumProgram
-              .where((p) => p.dersProgramGun.trim().toLowerCase() == filter)
-              .toList(growable: false)
-            ..sort((a, b) => a.dersProgramSaat.compareTo(b.dersProgramSaat));
+          final filtered =
+              selectedWeekItems
+                  .where((p) => p.dersProgramGun.trim().toLowerCase() == filter)
+                  .toList(growable: false)
+                ..sort(
+                  (a, b) => a.dersProgramSaat.compareTo(b.dersProgramSaat),
+                );
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
@@ -103,11 +276,11 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                 children: [
                   Expanded(
                     child: _ActionButton(
-                      icon: Icons.event_note_rounded,
-                      label: 'Sınav Takvimi',
-                      color: const Color(0xFF6C55E0),
-                      background: const Color(0xFFF0ECFF),
-                      onTap: _openExamCalendar,
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'AI Programı',
+                      color: const Color(0xFF7A4FD8),
+                      background: const Color(0xFFF2ECFF),
+                      onTap: _openAiPlanner,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -121,6 +294,14 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 10),
+              _ActionButton(
+                icon: Icons.event_note_rounded,
+                label: 'Sınav Takvimi',
+                color: const Color(0xFF6C55E0),
+                background: const Color(0xFFF0ECFF),
+                onTap: _openExamCalendar,
               ),
               const SizedBox(height: 24),
               const _SectionHeader(
@@ -148,6 +329,41 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                 subtitle: 'Gününü seç, çalışmalarını sırayla tamamla.',
               ),
               const SizedBox(height: 11),
+              if (weeks.isNotEmpty) ...[
+                SizedBox(
+                  height: 44,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: weeks.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final week = weeks[index];
+                      final selected = week == seciliHafta;
+                      return ChoiceChip(
+                        label: Text('$week. Hafta'),
+                        selected: selected,
+                        showCheckmark: false,
+                        onSelected: (_) => setState(() => seciliHafta = week),
+                        selectedColor: theme.colorScheme.secondary,
+                        backgroundColor: Colors.white,
+                        side: BorderSide(
+                          color: selected
+                              ? theme.colorScheme.secondary
+                              : const Color(0xFFD5E0E8),
+                          width: 1.45,
+                        ),
+                        labelStyle: TextStyle(
+                          color: selected
+                              ? theme.colorScheme.onSecondary
+                              : theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               SizedBox(
                 height: 44,
                 child: ListView.separated(
@@ -201,6 +417,7 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                     for (var i = 0; i < filtered.length; i++) ...[
                       _ProgramCard(
                         item: filtered[i],
+                        onEdit: () => _editProgram(filtered[i]),
                         onDelete: () async {
                           await ref
                               .read(dersProgramiRepositoryProvider)
@@ -219,8 +436,7 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                               );
                         },
                       ),
-                      if (i != filtered.length - 1)
-                        const SizedBox(height: 11),
+                      if (i != filtered.length - 1) const SizedBox(height: 11),
                     ],
                   ],
                 ),
@@ -520,10 +736,7 @@ class _SelectedDaySummary extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  day,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+                Text(day, style: const TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
                 Text(
                   total == 0
@@ -553,11 +766,13 @@ class _SelectedDaySummary extends StatelessWidget {
 class _ProgramCard extends StatelessWidget {
   const _ProgramCard({
     required this.item,
+    required this.onEdit,
     required this.onDelete,
     required this.onCompletedChanged,
   });
 
   final DersProgram item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final ValueChanged<bool> onCompletedChanged;
 
@@ -643,16 +858,35 @@ class _ProgramCard extends StatelessWidget {
                         icon: Icons.school_outlined,
                         text: item.dersProgramSinavTur,
                       ),
+                      _MetaPill(
+                        icon: Icons.timer_outlined,
+                        text: '${item.durationMinutes} dk',
+                      ),
+                      if (item.source == 'ai')
+                        const _MetaPill(
+                          icon: Icons.auto_awesome_rounded,
+                          text: 'AI',
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-            IconButton(
-              onPressed: onDelete,
-              tooltip: 'Sil',
-              color: theme.colorScheme.error,
-              icon: const Icon(Icons.delete_outline_rounded),
+            Column(
+              children: [
+                IconButton(
+                  onPressed: onEdit,
+                  tooltip: 'Düzenle',
+                  color: theme.colorScheme.primary,
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+                IconButton(
+                  onPressed: onDelete,
+                  tooltip: 'Sil',
+                  color: theme.colorScheme.error,
+                  icon: const Icon(Icons.delete_outline_rounded),
+                ),
+              ],
             ),
           ],
         ),
@@ -805,7 +1039,10 @@ class _MessageCard extends StatelessWidget {
       decoration: _cardDecoration(),
       child: Row(
         children: [
-          Icon(Icons.error_outline_rounded, color: Theme.of(context).colorScheme.error),
+          Icon(
+            Icons.error_outline_rounded,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(width: 10),
           Expanded(child: Text(message)),
         ],
