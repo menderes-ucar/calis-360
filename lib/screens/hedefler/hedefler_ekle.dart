@@ -113,12 +113,12 @@ class _HedeflerEkleState extends ConsumerState<HedeflerEkle> {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+                  colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
                 ),
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1685C8).withValues(alpha: 0.16),
+                    color: const Color(0xFF4A1F2C).withValues(alpha: 0.16),
                     blurRadius: 18,
                     offset: const Offset(0, 7),
                   ),

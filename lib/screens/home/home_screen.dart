@@ -7,11 +7,12 @@ import '../../app/router.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/gamification/domain/gamification_summary.dart';
 import '../../features/gamification/presentation/providers/gamification_providers.dart';
+import '../../features/study_planner/presentation/screens/ai_study_planner_screen.dart';
 import '../../features/study_data/presentation/providers/study_data_providers.dart';
 import '../../models/home_hedef_ekle.dart';
+import '../../widgets/home_widget/home_card_style.dart';
 import '../../widgets/home_widget/home_widget.dart';
 import '../../widgets/home_widget/home_widget_sayim.dart';
-import '../../widgets/home_widget/home_card_style.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -26,181 +27,143 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final repo = ref.read(homeHedefRepositoryProvider);
     final appUser = ref.watch(currentAppUserProvider).valueOrNull;
     final gamification = ref.watch(gamificationSummaryProvider);
-
     final displayName = appUser?.displayName?.trim();
-    final greetingName = displayName?.isNotEmpty == true
-        ? displayName!
-        : 'Öğrenci';
+    final greetingName = displayName?.isNotEmpty == true ? displayName! : 'Öğrenci';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Çalış 360'),
-        actions: [
-          IconButton(
-            onPressed: () => context.go('/profile'),
-            tooltip: 'Profil',
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(gamificationSummaryProvider);
-          await Future<void>.delayed(const Duration(milliseconds: 250));
-        },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 110),
-          children: [
-            Text(
-              'Merhaba, $greetingName 👋',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+      backgroundColor: HomeCardStyle.background,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: HomeCardStyle.forest,
+          onRefresh: () async {
+            ref.invalidate(gamificationSummaryProvider);
+            await Future<void>.delayed(const Duration(milliseconds: 250));
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 112),
+            children: [
+              _TopBar(
+                greetingName: greetingName,
+                onProfile: () => context.go('/profile'),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Bugünkü planına hızlıca devam et.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              const SizedBox(height: 24),
+              _HeroPlannerCard(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AiStudyPlannerScreen()),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            gamification.when(
-              loading: () => const _MetricsLoading(),
-              error: (_, _) => _MetricsError(
-                onRetry: () => ref.invalidate(gamificationSummaryProvider),
+              const SizedBox(height: 16),
+              gamification.when(
+                loading: () => const _MetricsLoading(),
+                error: (_, _) => _MetricsError(
+                  onRetry: () => ref.invalidate(gamificationSummaryProvider),
+                ),
+                data: (summary) => _MetricStrip(summary: summary),
               ),
-              data: (summary) => _MetricStrip(summary: summary),
-            ),
-            const SizedBox(height: 18),
-            _SectionHeader(
-              title: 'Hedefin',
-              trailing: TextButton(
-                onPressed: _openGoalEditor,
-                child: const Text('Düzenle'),
+              const SizedBox(height: 28),
+              const _SectionHeader(
+                eyebrow: 'BUGÜN',
+                title: 'Çalışma ritmin',
               ),
-            ),
-            const SizedBox(height: 8),
-            StreamBuilder<HomeHedef?>(
-              stream: repo.getHomeHedefForCurrentUser(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Card(
-                    elevation: 4,
-                    shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
-                    shape: HomeCardStyle.shape,
-                    child: const Padding(
-                      padding: EdgeInsets.all(18),
-                      child: LinearProgressIndicator(),
-                    ),
-                  );
-                }
-
-                final hedef = snapshot.data;
-                if (hedef == null) {
+              const SizedBox(height: 12),
+              StreamBuilder<HomeHedef?>(
+                stream: repo.getHomeHedefForCurrentUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const _SoftLoadingCard();
+                  }
+                  final hedef = snapshot.data;
                   return _GoalCard(
                     onTap: _openGoalEditor,
-                    title: 'Hedefini oluştur',
-                    subtitle:
-                        'Hedef netini, üniversiteni ve bölümünü ekleyerek planını kişiselleştir.',
-                    value: '--',
+                    title: hedef == null ? 'Hedefini oluştur' : '${hedef.uni} • ${hedef.bolum}',
+                    subtitle: hedef == null
+                        ? 'Rotanı belirle, çalışma planını hedefinle aynı çizgiye getir.'
+                        : 'Hedefin hazır. Günlük çalışmalarını bu rotada ilerlet.',
+                    value: hedef == null ? 'HEDEF EKLE' : '${hedef.net} NET',
                   );
-                }
-
-                return _GoalCard(
-                  onTap: _openGoalEditor,
-                  title: '${hedef.uni} • ${hedef.bolum}',
-                  subtitle: 'Hedefine göre ilerlemeni düzenli takip et.',
-                  value: '${hedef.net} net',
-                );
-              },
-            ),
-            const SizedBox(height: 14),
-            const CountdownWidget(),
-            const SizedBox(height: 22),
-            _SectionHeader(title: 'Hızlı Başla'),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _FeatureCard(
-                    icon: Icons.bolt_rounded,
-                    title: 'Soru Çöz',
-                    subtitle: 'AI ile adım adım çözüm',
-                    colors: const [Color(0xFF1FA8E8), Color(0xFF6E62E8)],
-                    onTap: () => context.go(AppRoutes.aiSolver),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _FeatureCard(
-                    icon: Icons.insights_rounded,
-                    title: 'Analizler',
-                    subtitle: 'Gelişimini detaylı gör',
-                    colors: const [Color(0xFF7156D9), Color(0xFF4A7ED8)],
-                    onTap: () => context.go(AppRoutes.analytics),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            _SectionHeader(title: 'Çalışma Alanların'),
-            const SizedBox(height: 10),
-            _ModuleGrid(
-              items: [
-                _ModuleItem(
-                  icon: Icons.auto_stories_outlined,
-                  title: 'Dersler',
-                  subtitle: 'Konu özetleri ve üniteler',
-                  color: const Color(0xFF1685C8),
-                  background: const Color(0xFFEAF6FF),
-                  onTap: () => context.push(AppRoutes.content),
-                ),
-                _ModuleItem(
-                  icon: Icons.calendar_month_outlined,
-                  title: 'Program',
-                  subtitle: 'Çalışma planın ve takvim',
-                  color: const Color(0xFF6C55E0),
-                  background: const Color(0xFFF0ECFF),
-                  onTap: () => context.push(AppRoutes.dersProgrami),
-                ),
-                _ModuleItem(
-                  icon: Icons.folder_copy_outlined,
-                  title: 'Sınav & Sorular',
-                  subtitle: 'Kayıtlarını yönet',
-                  color: const Color(0xFF17895C),
-                  background: const Color(0xFFE9F8F1),
-                  onTap: () => context.push(AppRoutes.sorular),
-                ),
-                _ModuleItem(
-                  icon: Icons.flag_outlined,
-                  title: 'Hedefler',
-                  subtitle: 'Planını ve hedefini takip et',
-                  color: const Color(0xFFE6653C),
-                  background: const Color(0xFFFFF0EA),
-                  onTap: () => context.push(AppRoutes.hedefler),
-                ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            _SectionHeader(
-              title: 'Derslere Göz At',
-              trailing: TextButton(
-                onPressed: () => context.push(AppRoutes.content),
-                child: const Text('Tüm dersler'),
+                },
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              'Bir derse dokunarak konu özetlerine ve ünitelerine geçebilirsin.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              const SizedBox(height: 12),
+              const CountdownWidget(),
+              const SizedBox(height: 28),
+              const _SectionHeader(
+                eyebrow: 'KISA YOLLAR',
+                title: 'Odak alanın',
               ),
-            ),
-            const SizedBox(height: 10),
-            const BannerWidgetArea(),
-          ],
+              const SizedBox(height: 12),
+              _EditorialActionCard(
+                icon: Icons.bolt_rounded,
+                title: 'AI ile soru çöz',
+                subtitle: 'Takıldığın soruyu yükle, çözümü adım adım incele.',
+                tone: HomeCardStyle.burgundy,
+                onTap: () => context.go(AppRoutes.aiSolver),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CompactActionCard(
+                      icon: Icons.auto_stories_rounded,
+                      title: 'Konu Özetleri',
+                      subtitle: 'Hızlı tekrar',
+                      onTap: () => context.push(AppRoutes.content),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _CompactActionCard(
+                      icon: Icons.insights_rounded,
+                      title: 'Analizler',
+                      subtitle: 'İlerlemeni gör',
+                      onTap: () => context.go(AppRoutes.analytics),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              const _SectionHeader(
+                eyebrow: 'MERKEZ',
+                title: 'Çalışmanı yönet',
+              ),
+              const SizedBox(height: 12),
+              _ManagementPanel(
+                items: [
+                  _ManagementItem(
+                    icon: Icons.calendar_month_rounded,
+                    title: 'Program',
+                    subtitle: 'Haftalık plan ve takvim',
+                    onTap: () => context.push(AppRoutes.dersProgrami),
+                  ),
+                  _ManagementItem(
+                    icon: Icons.folder_copy_rounded,
+                    title: 'Sınav & Sorular',
+                    subtitle: 'Kayıtlarını düzenle',
+                    onTap: () => context.push(AppRoutes.sorular),
+                  ),
+                  _ManagementItem(
+                    icon: Icons.flag_rounded,
+                    title: 'Hedefler',
+                    subtitle: 'Rotanı güncel tut',
+                    onTap: () => context.push(AppRoutes.hedefler),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              _SectionHeader(
+                eyebrow: 'KÜTÜPHANE',
+                title: 'Derslere göz at',
+                trailing: TextButton(
+                  onPressed: () => context.push(AppRoutes.content),
+                  style: TextButton.styleFrom(foregroundColor: HomeCardStyle.forest),
+                  child: const Text('Tümünü gör'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const BannerWidgetArea(),
+            ],
+          ),
         ),
       ),
     );
@@ -208,10 +171,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _openGoalEditor() async {
     final repo = ref.read(homeHedefRepositoryProvider);
-    final result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => HomeHedefEkle()));
-
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => HomeHedefEkle()),
+    );
     if (result != null && result is Map<String, String>) {
       await repo.addOrUpdateHedefForCurrentUser(
         net: int.tryParse(result['hedefNet'] ?? '0') ?? 0,
@@ -222,22 +184,206 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.trailing});
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.greetingName, required this.onProfile});
+  final String greetingName;
+  final VoidCallback onProfile;
 
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ÇALIŞ 360',
+                style: TextStyle(
+                  color: HomeCardStyle.forest,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.1,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Merhaba, $greetingName',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: HomeCardStyle.ink,
+                  fontSize: 27,
+                  height: 1.05,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Material(
+          color: HomeCardStyle.surface,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onProfile,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: HomeCardStyle.borderColor),
+              ),
+              child: const Icon(Icons.person_outline_rounded, color: HomeCardStyle.burgundy),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroPlannerCard extends StatelessWidget {
+  const _HeroPlannerCard({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        child: Ink(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: HomeCardStyle.forest,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: HomeCardStyle.shadows(accent: HomeCardStyle.forest),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: HomeCardStyle.background,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'AI PLANLAYICI',
+                      style: TextStyle(
+                        color: HomeCardStyle.forest,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '10 KREDİ',
+                    style: TextStyle(
+                      color: HomeCardStyle.background.withValues(alpha: .72),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .8,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                'Haftanı\nzekice planla.',
+                style: TextStyle(
+                  color: HomeCardStyle.background,
+                  fontSize: 31,
+                  height: .98,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.1,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Derslerini, hedefini ve zamanını seç. Sana uygun çalışma akışını AI oluştursun.',
+                style: TextStyle(
+                  color: HomeCardStyle.background.withValues(alpha: .78),
+                  fontSize: 13,
+                  height: 1.45,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  const Text(
+                    'Program oluştur',
+                    style: TextStyle(
+                      color: HomeCardStyle.background,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: const BoxDecoration(
+                      color: HomeCardStyle.burgundy,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_forward_rounded, color: HomeCardStyle.background, size: 18),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.eyebrow, required this.title, this.trailing});
+  final String eyebrow;
   final String title;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                eyebrow,
+                style: const TextStyle(
+                  color: HomeCardStyle.burgundy,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: HomeCardStyle.ink,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.45,
+                ),
+              ),
+            ],
           ),
         ),
         if (trailing != null) trailing!,
@@ -248,139 +394,28 @@ class _SectionHeader extends StatelessWidget {
 
 class _MetricStrip extends StatelessWidget {
   const _MetricStrip({required this.summary});
-
   final GamificationSummary summary;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 420;
-        final cards = [
-          _MetricCard(
-            icon: Icons.local_fire_department_rounded,
-            label: 'Çalışma Serisi',
-            value: '${summary.currentStreak}',
-            suffix: 'gün',
-            color: const Color(0xFFE6653C),
-            background: const Color(0xFFFFF0EA),
-          ),
-          _MetricCard(
-            icon: Icons.bolt_rounded,
-            label: 'Çözülen',
-            value: '${summary.solvedCount}',
-            suffix: 'soru',
-            color: const Color(0xFF1685C8),
-            background: const Color(0xFFEAF6FF),
-          ),
-          _MetricCard(
-            icon: Icons.workspace_premium_outlined,
-            label: 'Başarı Puanı',
-            value: '${summary.score}',
-            suffix: 'puan',
-            color: const Color(0xFF6C55E0),
-            background: const Color(0xFFF0ECFF),
-          ),
-          _MetricCard(
-            icon: Icons.task_alt_rounded,
-            label: 'Doğruluk',
-            value: summary.accuracyPercent == null
-                ? '--'
-                : '%${summary.accuracyPercent}',
-            suffix: summary.accuracyPercent == null ? 'veri yok' : 'başarı',
-            color: const Color(0xFF17895C),
-            background: const Color(0xFFE9F8F1),
-          ),
-        ];
-
-        if (compact) {
-          return GridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.35,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: cards,
-          );
-        }
-
-        return Row(
-          children: [
-            for (var i = 0; i < cards.length; i++) ...[
-              Expanded(child: cards[i]),
-              if (i != cards.length - 1) const SizedBox(width: 10),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.suffix,
-    required this.color,
-    required this.background,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final String suffix;
-  final Color color;
-  final Color background;
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.symmetric(vertical: 17),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: color.withValues(alpha: 0.30),
-          width: HomeCardStyle.borderWidth,
-        ),
-        boxShadow: HomeCardStyle.shadows(accent: color),
+        color: HomeCardStyle.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: HomeCardStyle.borderColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          Text(
-            suffix,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          _Metric(value: '${summary.currentStreak}', label: 'GÜN SERİ'),
+          const _MetricDivider(),
+          _Metric(value: '${summary.solvedCount}', label: 'SORU'),
+          const _MetricDivider(),
+          _Metric(value: '${summary.score}', label: 'PUAN'),
+          const _MetricDivider(),
+          _Metric(
+            value: summary.accuracyPercent == null ? '—' : '%${summary.accuracyPercent}',
+            label: 'DOĞRULUK',
           ),
         ],
       ),
@@ -388,74 +423,43 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _MetricsLoading extends StatelessWidget {
-  const _MetricsLoading();
+class _Metric extends StatelessWidget {
+  const _Metric({required this.value, required this.label});
+  final String value;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
-      shape: HomeCardStyle.shape,
-      child: const Padding(
-        padding: EdgeInsets.all(18),
-        child: LinearProgressIndicator(),
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: HomeCardStyle.burgundy, fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: HomeCardStyle.muted, fontSize: 8.5, fontWeight: FontWeight.w800, letterSpacing: .4),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _MetricsError extends StatelessWidget {
-  const _MetricsError({required this.onRetry});
-
-  final VoidCallback onRetry;
-
+class _MetricDivider extends StatelessWidget {
+  const _MetricDivider();
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 4,
-      shadowColor: const Color(0xFF172033).withValues(alpha: 0.12),
-      shape: HomeCardStyle.shape,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: colors.errorContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.refresh_rounded,
-                color: colors.onErrorContainer,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'İstatistikler şu anda yüklenemedi.',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-            TextButton(onPressed: onRetry, child: const Text('Tekrar dene')),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(width: 1, height: 34, color: HomeCardStyle.borderColor);
 }
 
 class _GoalCard extends StatelessWidget {
-  const _GoalCard({
-    required this.onTap,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-  });
-
+  const _GoalCard({required this.onTap, required this.title, required this.subtitle, required this.value});
   final VoidCallback onTap;
   final String title;
   final String subtitle;
@@ -463,68 +467,39 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
-      shape: HomeCardStyle.shape,
+    return Material(
+      color: HomeCardStyle.surface,
+      borderRadius: BorderRadius.circular(HomeCardStyle.radius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(17),
+        borderRadius: BorderRadius.circular(HomeCardStyle.radius),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(HomeCardStyle.radius),
+            border: Border.all(color: HomeCardStyle.borderColor),
+          ),
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF6FF),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: const Icon(
-                  Icons.flag_rounded,
-                  color: Color(0xFF1685C8),
-                ),
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(color: HomeCardStyle.burgundy, borderRadius: BorderRadius.circular(14)),
+                child: const Icon(Icons.flag_rounded, color: HomeCardStyle.background, size: 21),
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: HomeCardStyle.ink, fontWeight: FontWeight.w900, fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: HomeCardStyle.muted, fontSize: 11.5, height: 1.35)),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Color(0xFF1685C8),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 17,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  const Icon(Icons.chevron_right_rounded, size: 20),
-                ],
-              ),
+              const SizedBox(width: 10),
+              Text(value, style: const TextStyle(color: HomeCardStyle.forest, fontWeight: FontWeight.w900, fontSize: 11)),
             ],
           ),
         ),
@@ -533,66 +508,44 @@ class _GoalCard extends StatelessWidget {
   }
 }
 
-class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.colors,
-    required this.onTap,
-  });
-
+class _EditorialActionCard extends StatelessWidget {
+  const _EditorialActionCard({required this.icon, required this.title, required this.subtitle, required this.tone, required this.onTap});
   final IconData icon;
   final String title;
   final String subtitle;
-  final List<Color> colors;
+  final Color tone;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: tone,
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          padding: const EdgeInsets.all(17),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: colors,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.30),
-              width: HomeCardStyle.borderWidth,
-            ),
-            boxShadow: HomeCardStyle.shadows(accent: colors.first),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(19),
+          child: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 27),
-              const SizedBox(height: 18),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(color: HomeCardStyle.background.withValues(alpha: .12), borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: HomeCardStyle.background),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(color: HomeCardStyle.background, fontSize: 16, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(color: HomeCardStyle.background.withValues(alpha: .72), fontSize: 11.5, height: 1.35)),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.86),
-                  height: 1.25,
-                ),
-              ),
+              const Icon(Icons.arrow_forward_rounded, color: HomeCardStyle.background),
             ],
           ),
         ),
@@ -601,84 +554,158 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
-class _ModuleGrid extends StatelessWidget {
-  const _ModuleGrid({required this.items});
-
-  final List<_ModuleItem> items;
+class _CompactActionCard extends StatelessWidget {
+  const _CompactActionCard({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.35,
-      ),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return Card(
-          elevation: 4,
-          shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
-          shape: HomeCardStyle.shape,
-          child: InkWell(
-            onTap: item.onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: item.background,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: Icon(item.icon, color: item.color, size: 21),
-                  ),
-                  const Spacer(),
-                  Text(
-                    item.title,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    item.subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Material(
+      color: HomeCardStyle.surface,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), border: Border.all(color: HomeCardStyle.borderColor)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: HomeCardStyle.forest, size: 25),
+              const SizedBox(height: 20),
+              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: HomeCardStyle.ink, fontWeight: FontWeight.w900, fontSize: 14)),
+              const SizedBox(height: 3),
+              Text(subtitle, style: const TextStyle(color: HomeCardStyle.muted, fontSize: 11)),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
 
-class _ModuleItem {
-  const _ModuleItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.background,
-    required this.onTap,
-  });
+class _ManagementPanel extends StatelessWidget {
+  const _ManagementPanel({required this.items});
+  final List<_ManagementItem> items;
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: HomeCardStyle.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: HomeCardStyle.borderColor),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            _ManagementRow(item: items[i]),
+            if (i != items.length - 1)
+              const Padding(
+                padding: EdgeInsets.only(left: 66),
+                child: Divider(height: 1, color: HomeCardStyle.borderColor),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ManagementRow extends StatelessWidget {
+  const _ManagementRow({required this.item});
+  final _ManagementItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: item.onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(color: HomeCardStyle.background, borderRadius: BorderRadius.circular(12)),
+              child: Icon(item.icon, color: HomeCardStyle.burgundy, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.title, style: const TextStyle(color: HomeCardStyle.ink, fontSize: 14, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 2),
+                  Text(item.subtitle, style: const TextStyle(color: HomeCardStyle.muted, fontSize: 11)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: HomeCardStyle.forest),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ManagementItem {
+  const _ManagementItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
-  final Color background;
   final VoidCallback onTap;
+}
+
+class _MetricsLoading extends StatelessWidget {
+  const _MetricsLoading();
+  @override
+  Widget build(BuildContext context) => const _SoftLoadingCard();
+}
+
+class _SoftLoadingCard extends StatelessWidget {
+  const _SoftLoadingCard();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 76,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: HomeCardStyle.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: HomeCardStyle.borderColor),
+      ),
+      child: const Center(child: LinearProgressIndicator(color: HomeCardStyle.forest, backgroundColor: HomeCardStyle.background)),
+    );
+  }
+}
+
+class _MetricsError extends StatelessWidget {
+  const _MetricsError({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: HomeCardStyle.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: HomeCardStyle.borderColor),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.refresh_rounded, color: HomeCardStyle.burgundy),
+          const SizedBox(width: 10),
+          const Expanded(child: Text('İstatistikler şu anda yüklenemedi.', style: TextStyle(color: HomeCardStyle.ink, fontWeight: FontWeight.w800))),
+          TextButton(onPressed: onRetry, style: TextButton.styleFrom(foregroundColor: HomeCardStyle.forest), child: const Text('Tekrar dene')),
+        ],
+      ),
+    );
+  }
 }

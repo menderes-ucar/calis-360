@@ -211,12 +211,12 @@ class _GoalsHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1685C8).withValues(alpha: 0.18),
+            color: const Color(0xFF4A1F2C).withValues(alpha: 0.18),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -509,13 +509,13 @@ class _GoalCard extends StatelessWidget {
                           _GoalTag(
                             icon: Icons.calendar_today_outlined,
                             text: dateText,
-                            color: const Color(0xFF667085),
+                            color: const Color(0xFF74676A),
                           ),
                           if (hedef.tamamlandi)
                             const _GoalTag(
                               icon: Icons.check_circle_outline_rounded,
                               text: 'Tamamlandı',
-                              color: Color(0xFF17895C),
+                              color: Color(0xFF1F4A3D),
                             ),
                         ],
                       ),
@@ -545,9 +545,9 @@ class _GoalCard extends StatelessWidget {
   }
 
   Color _goalColor(String type) {
-    if (type == 'Haftalık Hedef') return const Color(0xFF6C55E0);
-    if (type == 'Aylık Hedef') return const Color(0xFFE6653C);
-    return const Color(0xFF1685C8);
+    if (type == 'Haftalık Hedef') return const Color(0xFF1F4A3D);
+    if (type == 'Aylık Hedef') return const Color(0xFF4A1F2C);
+    return const Color(0xFF4A1F2C);
   }
 }
 

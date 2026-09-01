@@ -343,15 +343,15 @@ class _AnalyticsHero extends StatelessWidget {
     final improving = delta != null && delta > 0;
     final declining = delta != null && delta < 0;
     final accent = improving
-        ? const Color(0xFF17895C)
+        ? const Color(0xFF1F4A3D)
         : declining
-        ? const Color(0xFFE6653C)
-        : const Color(0xFF1685C8);
+        ? const Color(0xFF4A1F2C)
+        : const Color(0xFF4A1F2C);
     final soft = improving
         ? const Color(0xFFE9F8F1)
         : declining
-        ? const Color(0xFFFFF0EA)
-        : const Color(0xFFEAF6FF);
+        ? const Color(0xFFE7D7CC)
+        : const Color(0xFFF2E6DC);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -410,10 +410,10 @@ class _TrendAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, background) = switch (trend) {
-      AnalyticsTrend.improving => (const Color(0xFF17895C), const Color(0xFFE9F8F1)),
-      AnalyticsTrend.declining => (const Color(0xFFE6653C), const Color(0xFFFFF0EA)),
-      AnalyticsTrend.stable => (const Color(0xFF1685C8), const Color(0xFFEAF6FF)),
-      AnalyticsTrend.insufficient => (const Color(0xFF6C55E0), const Color(0xFFF0ECFF)),
+      AnalyticsTrend.improving => (const Color(0xFF1F4A3D), const Color(0xFFE9F8F1)),
+      AnalyticsTrend.declining => (const Color(0xFF4A1F2C), const Color(0xFFE7D7CC)),
+      AnalyticsTrend.stable => (const Color(0xFF4A1F2C), const Color(0xFFF2E6DC)),
+      AnalyticsTrend.insufficient => (const Color(0xFF1F4A3D), const Color(0xFFE7D7CC)),
     };
     return Container(
       width: 42,
@@ -472,8 +472,8 @@ class _PremiumSummaryStrip extends StatelessWidget {
                   width: width,
                   child: _PremiumMetricCard(
                     icon: Icons.priority_high_rounded,
-                    accent: const Color(0xFFE6653C),
-                    softAccent: const Color(0xFFFFF0EA),
+                    accent: const Color(0xFF4A1F2C),
+                    softAccent: const Color(0xFFE7D7CC),
                     label: 'Öncelikli konu',
                     value: riskTopic == null
                         ? 'Veri bekleniyor'
@@ -487,7 +487,7 @@ class _PremiumSummaryStrip extends StatelessWidget {
                   width: width,
                   child: _PremiumMetricCard(
                     icon: Icons.verified_rounded,
-                    accent: const Color(0xFF17895C),
+                    accent: const Color(0xFF1F4A3D),
                     softAccent: const Color(0xFFE9F8F1),
                     label: 'En güçlü konu',
                     value: strongTopic == null
@@ -502,8 +502,8 @@ class _PremiumSummaryStrip extends StatelessWidget {
                   width: width,
                   child: _PremiumMetricCard(
                     icon: Icons.monitor_heart_outlined,
-                    accent: const Color(0xFF6C55E0),
-                    softAccent: const Color(0xFFF0ECFF),
+                    accent: const Color(0xFF1F4A3D),
+                    softAccent: const Color(0xFFE7D7CC),
                     label: 'Risk sinyali',
                     value: declining == 0
                         ? 'Belirgin düşüş yok'
@@ -609,7 +609,7 @@ class _FocusCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -690,11 +690,11 @@ class _AnalyticsSection extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF6FF),
+              color: const Color(0xFFF2E6DC),
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, size: 21, color: const Color(0xFF1685C8)),
+            child: Icon(icon, size: 21, color: const Color(0xFF4A1F2C)),
           ),
           title: Text(
             title,
@@ -732,7 +732,7 @@ class _OverviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1685C8).withValues(alpha: 0.24), width: 1.35),
+        border: Border.all(color: const Color(0xFF4A1F2C).withValues(alpha: 0.24), width: 1.35),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),

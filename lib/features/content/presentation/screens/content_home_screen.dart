@@ -32,7 +32,7 @@ class ContentHomeScreen extends ConsumerWidget {
                 _CountBadge(text: '${items.length} ders'),
               ]),
               const SizedBox(height: 5),
-              Text('Ünitelerden konulara ilerle, özetleri ve kritik noktaları çalış.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text('Dersini seç, tüm konu başlıklarını tek listede gör ve istediğin konudan çalışmaya başla.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 14),
               ...items.asMap().entries.map((entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -53,15 +53,15 @@ class _HeroCard extends StatelessWidget {
     padding: const EdgeInsets.all(21),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(24),
-      gradient: const LinearGradient(colors: [Color(0xFF1685C8), Color(0xFF6C55E0)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+      gradient: const LinearGradient(colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
       boxShadow: const [BoxShadow(color: Color(0x221685C8), blurRadius: 22, offset: Offset(0, 9))],
     ),
     child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       DecoratedBox(decoration: BoxDecoration(color: Color(0x2AFFFFFF), borderRadius: BorderRadius.all(Radius.circular(14))), child: Padding(padding: EdgeInsets.all(10), child: Icon(Icons.auto_stories_rounded, color: Colors.white, size: 30))),
       SizedBox(height: 18),
-      Text('Konu konu hızlı tekrar', style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.w900)),
+      Text('Dersini seç, doğrudan konuya geç', style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.w900)),
       SizedBox(height: 7),
-      Text('Özetler, formüller, kritik noktalar ve örneklerle sınava daha düzenli hazırlan.', style: TextStyle(color: Colors.white, height: 1.45, fontWeight: FontWeight.w500)),
+      Text('Aradaki ünite ekranıyla uğraşmadan dersin tüm konularını tek ekranda görüntüle.', style: TextStyle(color: Colors.white, height: 1.45, fontWeight: FontWeight.w500)),
     ]),
   );
 }
@@ -69,7 +69,7 @@ class _HeroCard extends StatelessWidget {
 class _SubjectCard extends StatelessWidget {
   const _SubjectCard({required this.subject, required this.index});
   final StudySubject subject; final int index;
-  static const _accents = [Color(0xFF1685C8), Color(0xFF6C55E0), Color(0xFF17895C), Color(0xFFE6653C)];
+  static const _accents = [Color(0xFF4A1F2C), Color(0xFF1F4A3D), Color(0xFF1F4A3D), Color(0xFF4A1F2C)];
   @override
   Widget build(BuildContext context) {
     final color = _accents[index % _accents.length];
@@ -99,5 +99,5 @@ class _SubjectCard extends StatelessWidget {
   IconData _iconFor(String key) => switch (key) { 'calculate' => Icons.calculate_rounded, 'science' => Icons.science_rounded, 'language' => Icons.menu_book_rounded, _ => Icons.school_rounded };
 }
 
-class _CountBadge extends StatelessWidget { const _CountBadge({required this.text}); final String text; @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEAF6FF), borderRadius: BorderRadius.circular(999)), child: Text(text, style: const TextStyle(color: Color(0xFF1685C8), fontWeight: FontWeight.w800, fontSize: 12))); }
+class _CountBadge extends StatelessWidget { const _CountBadge({required this.text}); final String text; @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFF2E6DC), borderRadius: BorderRadius.circular(999)), child: Text(text, style: const TextStyle(color: Color(0xFF4A1F2C), fontWeight: FontWeight.w800, fontSize: 12))); }
 class _EmptyContent extends StatelessWidget { const _EmptyContent(); @override Widget build(BuildContext context) => ListView(padding: const EdgeInsets.all(24), children: const [SizedBox(height: 100), Icon(Icons.auto_stories_outlined, size: 52), SizedBox(height: 16), Text('Henüz içerik bulunmuyor.', textAlign: TextAlign.center)]); }

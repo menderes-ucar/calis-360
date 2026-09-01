@@ -171,7 +171,7 @@ class _BillingHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
@@ -245,7 +245,7 @@ class _StatusCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -333,7 +333,7 @@ class _ProductCard extends ConsumerWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -403,7 +403,7 @@ class _EmptyProductsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -452,7 +452,7 @@ class _PremiumBenefitsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),

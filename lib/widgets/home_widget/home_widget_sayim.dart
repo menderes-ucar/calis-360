@@ -58,8 +58,10 @@ class _CountdownWidgetState extends State<CountdownWidget> {
     final minutes = remainingTime.inMinutes % 60;
 
     return Card(
-      elevation: 4,
-      shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
+      color: HomeCardStyle.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shadowColor: HomeCardStyle.burgundy.withValues(alpha: 0.08),
       shape: HomeCardStyle.shape,
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -127,8 +129,10 @@ class _FinishedExamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4,
-      shadowColor: const Color(0xFF172033).withValues(alpha: 0.16),
+      color: HomeCardStyle.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shadowColor: HomeCardStyle.burgundy.withValues(alpha: 0.08),
       shape: HomeCardStyle.shape,
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -138,12 +142,12 @@ class _FinishedExamCard extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: const Color(0xFFEAF6FF),
+                color: HomeCardStyle.forest,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
                 Icons.event_available_rounded,
-                color: Color(0xFF1685C8),
+                color: HomeCardStyle.background,
               ),
             ),
             const SizedBox(width: 13),

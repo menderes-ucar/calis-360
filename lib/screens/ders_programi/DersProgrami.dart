@@ -24,6 +24,7 @@ class Dersprogrami extends ConsumerStatefulWidget {
 class _DersprogramiState extends ConsumerState<Dersprogrami> {
   String seciliFiltre = 'Pazartesi';
   int seciliHafta = 1;
+  bool _takvimAcik = false;
 
   static const _gunler = <String>[
     'Pazartesi',
@@ -278,8 +279,8 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                     child: _ActionButton(
                       icon: Icons.auto_awesome_rounded,
                       label: 'AI Programı',
-                      color: const Color(0xFF7A4FD8),
-                      background: const Color(0xFFF2ECFF),
+                      color: const Color(0xFF1F4A3D),
+                      background: const Color(0xFFE7D7CC),
                       onTap: _openAiPlanner,
                     ),
                   ),
@@ -288,8 +289,8 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
                     child: _ActionButton(
                       icon: Icons.add_task_rounded,
                       label: 'Çalışma Ekle',
-                      color: const Color(0xFF1685C8),
-                      background: const Color(0xFFEAF6FF),
+                      color: const Color(0xFF4A1F2C),
+                      background: const Color(0xFFF2E6DC),
                       onTap: _openAddProgram,
                     ),
                   ),
@@ -297,32 +298,48 @@ class _DersprogramiState extends ConsumerState<Dersprogrami> {
               ),
               const SizedBox(height: 10),
               _ActionButton(
-                icon: Icons.event_note_rounded,
-                label: 'Sınav Takvimi',
-                color: const Color(0xFF6C55E0),
-                background: const Color(0xFFF0ECFF),
-                onTap: _openExamCalendar,
+                icon: _takvimAcik
+                    ? Icons.keyboard_arrow_up_rounded
+                    : Icons.calendar_month_rounded,
+                label: 'Takvim',
+                color: const Color(0xFF1F4A3D),
+                background: const Color(0xFFE7D7CC),
+                onTap: () => setState(() => _takvimAcik = !_takvimAcik),
               ),
-              const SizedBox(height: 24),
-              const _SectionHeader(
-                title: 'Sınav Takvimi',
-                subtitle: 'Yaklaşan sınavlarını ay görünümünde takip et.',
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
-                decoration: _cardDecoration(
-                  borderColor: const Color(0xFFD7D0F4),
-                  shadowColor: const Color(0xFF6C55E0),
+              if (_takvimAcik) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: _SectionHeader(
+                        title: 'Sınav Takvimi',
+                        subtitle: 'Yaklaşan sınavlarını ay görünümünde takip et.',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    FilledButton.icon(
+                      onPressed: _openExamCalendar,
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Sınav Ekle'),
+                    ),
+                  ],
                 ),
-                child: StreamBuilder<List<SinavTakvimi>>(
-                  stream: ref.read(sinavTakvimiRepositoryProvider).getDers(),
-                  builder: (context, snapshot) {
-                    final sinavlar = snapshot.data ?? const <SinavTakvimi>[];
-                    return SinavTakvimiWidget(sinavlar: sinavlar);
-                  },
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                  decoration: _cardDecoration(
+                    borderColor: const Color(0xFFD7D0F4),
+                    shadowColor: const Color(0xFF1F4A3D),
+                  ),
+                  child: StreamBuilder<List<SinavTakvimi>>(
+                    stream: ref.read(sinavTakvimiRepositoryProvider).getDers(),
+                    builder: (context, snapshot) {
+                      final sinavlar = snapshot.data ?? const <SinavTakvimi>[];
+                      return SinavTakvimiWidget(sinavlar: sinavlar);
+                    },
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 24),
               const _SectionHeader(
                 title: 'Haftalık Program',
@@ -475,13 +492,13 @@ class _ProgramHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF5C62D9)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF5C62D9)],
         ),
         borderRadius: BorderRadius.circular(23),
         border: Border.all(color: const Color(0xFF0E72B0), width: 1.6),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1685C8).withValues(alpha: 0.20),
+            color: const Color(0xFF4A1F2C).withValues(alpha: 0.20),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -722,12 +739,12 @@ class _SelectedDaySummary extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF6FF),
+              color: const Color(0xFFF2E6DC),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.today_rounded,
-              color: Color(0xFF1685C8),
+              color: Color(0xFF4A1F2C),
               size: 20,
             ),
           ),
@@ -753,7 +770,7 @@ class _SelectedDaySummary extends StatelessWidget {
             Text(
               '$completed/$total',
               style: const TextStyle(
-                color: Color(0xFF1685C8),
+                color: Color(0xFF4A1F2C),
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -780,8 +797,8 @@ class _ProgramCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = item.tamamlandi
-        ? const Color(0xFF17895C)
-        : const Color(0xFF1685C8);
+        ? const Color(0xFF1F4A3D)
+        : const Color(0xFF4A1F2C);
 
     return Container(
       decoration: _cardDecoration(
@@ -828,7 +845,7 @@ class _ProgramCard extends StatelessWidget {
                       if (item.tamamlandi)
                         const _StatusPill(
                           text: 'Tamamlandı',
-                          color: Color(0xFF17895C),
+                          color: Color(0xFF1F4A3D),
                           background: Color(0xFFE9F8F1),
                         ),
                     ],
@@ -914,7 +931,7 @@ class _MetaPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: const Color(0xFF667085)),
+          Icon(icon, size: 15, color: const Color(0xFF74676A)),
           const SizedBox(width: 5),
           Text(
             text,
@@ -978,13 +995,13 @@ class _EmptyDayCard extends StatelessWidget {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF6FF),
+              color: const Color(0xFFF2E6DC),
               borderRadius: BorderRadius.circular(17),
             ),
             child: const Icon(
               Icons.event_available_outlined,
               size: 29,
-              color: Color(0xFF1685C8),
+              color: Color(0xFF4A1F2C),
             ),
           ),
           const SizedBox(height: 12),
@@ -1052,7 +1069,7 @@ class _MessageCard extends StatelessWidget {
 }
 
 BoxDecoration _cardDecoration({Color? borderColor, Color? shadowColor}) {
-  final shadow = shadowColor ?? const Color(0xFF172033);
+  final shadow = shadowColor ?? const Color(0xFF2B2022);
   return BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(21),

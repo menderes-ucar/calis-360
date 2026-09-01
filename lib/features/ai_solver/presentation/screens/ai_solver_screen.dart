@@ -296,7 +296,7 @@ class _AiSolverScreenState extends ConsumerState<AiSolverScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
@@ -339,7 +339,7 @@ class _AiSolverScreenState extends ConsumerState<AiSolverScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       child: Padding(
         padding: const EdgeInsets.all(17),
@@ -521,7 +521,7 @@ class _SolutionCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
-        side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+        side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),

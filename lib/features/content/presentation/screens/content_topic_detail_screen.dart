@@ -13,10 +13,10 @@ import '../../domain/content_models.dart';
 import '../providers/audio_lesson_providers.dart';
 import '../providers/content_providers.dart';
 
-const _ink = Color(0xFF172033);
+const _ink = Color(0xFF2B2022);
 const _border = Color(0xFFD8E1EA);
-const _primary = Color(0xFF1685C8);
-const _secondary = Color(0xFF6C55E0);
+const _primary = Color(0xFF4A1F2C);
+const _secondary = Color(0xFF1F4A3D);
 
 class ContentTopicDetailScreen extends ConsumerWidget {
   const ContentTopicDetailScreen({
@@ -428,7 +428,7 @@ class _PersonalBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return const DecoratedBox(
       decoration: BoxDecoration(
-        color: Color(0xFFEAF6FF),
+        color: Color(0xFFF2E6DC),
         borderRadius: BorderRadius.all(Radius.circular(999)),
       ),
       child: Padding(
@@ -780,7 +780,7 @@ class _AudioPreviewCardState extends ConsumerState<_AudioPreviewCard> {
                 'oturumdan devam edebilirsin; tekrar kredi kesilmez.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF667085),
+                  color: Color(0xFF74676A),
                   height: 1.4,
                 ),
               ),
@@ -831,7 +831,7 @@ class _SectionCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF6FF),
+                  color: const Color(0xFFF2E6DC),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(icon, color: _primary, size: 21),
@@ -889,7 +889,7 @@ class _FormulaBox extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 9),
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FC),
+        color: const Color(0xFFF2E6DC),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _border, width: 1.4),
       ),
@@ -961,7 +961,7 @@ class _ExampleCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FC),
+        color: const Color(0xFFF2E6DC),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _border, width: 1.4),
       ),

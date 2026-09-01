@@ -91,24 +91,24 @@ class ProfileScreen extends ConsumerWidget {
               items: [
                 _ProfileMenuItem(
                   icon: Icons.workspace_premium_outlined,
-                  iconColor: const Color(0xFF6C55E0),
-                  iconBackground: const Color(0xFFF0ECFF),
+                  iconColor: const Color(0xFF1F4A3D),
+                  iconBackground: const Color(0xFFE7D7CC),
                   title: 'Premium & AI Kredileri',
                   subtitle: 'Planını ve kredi bakiyeni yönet',
                   onTap: () => context.push(AppRoutes.billing),
                 ),
                 _ProfileMenuItem(
                   icon: Icons.flag_outlined,
-                  iconColor: const Color(0xFFE6653C),
-                  iconBackground: const Color(0xFFFFF0EA),
+                  iconColor: const Color(0xFF4A1F2C),
+                  iconBackground: const Color(0xFFE7D7CC),
                   title: 'Hedeflerim',
                   subtitle: 'Hedeflerini görüntüle ve düzenle',
                   onTap: () => context.push(AppRoutes.hedefler),
                 ),
                 _ProfileMenuItem(
                   icon: Icons.settings_outlined,
-                  iconColor: const Color(0xFF1685C8),
-                  iconBackground: const Color(0xFFEAF6FF),
+                  iconColor: const Color(0xFF4A1F2C),
+                  iconBackground: const Color(0xFFF2E6DC),
                   title: 'Ayarlar',
                   subtitle: 'Bildirimler, hesap ve uygulama tercihleri',
                   onTap: () => context.push(AppRoutes.ayarlar),
@@ -142,8 +142,8 @@ class _ProfileHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _cardDecoration(
-        borderColor: const Color(0xFFBFD6E6),
-        shadowColor: const Color(0xFF1685C8),
+        borderColor: const Color(0xFFD6C5BB),
+        shadowColor: const Color(0xFF4A1F2C),
       ),
       child: Column(
         children: [
@@ -156,12 +156,12 @@ class _ProfileHero extends StatelessWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF20A8E8), Color(0xFF6C55E0)],
+                    colors: [Color(0xFF20A8E8), Color(0xFF1F4A3D)],
                   ),
                   borderRadius: BorderRadius.circular(23),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1685C8).withValues(alpha: 0.20),
+                      color: const Color(0xFF4A1F2C).withValues(alpha: 0.20),
                       blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),
@@ -206,16 +206,16 @@ class _ProfileHero extends StatelessWidget {
                               : Icons.school_outlined,
                           text: premium ? 'Premium' : 'Ücretsiz',
                           color: premium
-                              ? const Color(0xFF6C55E0)
-                              : const Color(0xFF1677B8),
+                              ? const Color(0xFF1F4A3D)
+                              : const Color(0xFF4A1F2C),
                           background: premium
-                              ? const Color(0xFFF0ECFF)
-                              : const Color(0xFFEAF6FF),
+                              ? const Color(0xFFE7D7CC)
+                              : const Color(0xFFF2E6DC),
                         ),
                         _Pill(
                           icon: Icons.bolt_rounded,
                           text: '$credits kredi',
-                          color: const Color(0xFF17895C),
+                          color: const Color(0xFF1F4A3D),
                           background: const Color(0xFFE9F8F1),
                         ),
                       ],
@@ -240,7 +240,7 @@ class _ProfileHero extends StatelessWidget {
               children: [
                 Icon(
                   Icons.auto_awesome_rounded,
-                  color: Color(0xFF1685C8),
+                  color: Color(0xFF4A1F2C),
                   size: 20,
                 ),
                 SizedBox(width: 9),
@@ -285,29 +285,29 @@ class _StatsGrid extends StatelessWidget {
             icon: Icons.local_fire_department_rounded,
             label: 'Seri',
             value: '$streak gün',
-            color: const Color(0xFFE6653C),
-            background: const Color(0xFFFFF0EA),
+            color: const Color(0xFF4A1F2C),
+            background: const Color(0xFFE7D7CC),
           ),
           _MetricCard(
             icon: Icons.workspace_premium_outlined,
             label: 'Puan',
             value: '$score',
-            color: const Color(0xFF6C55E0),
-            background: const Color(0xFFF0ECFF),
+            color: const Color(0xFF1F4A3D),
+            background: const Color(0xFFE7D7CC),
           ),
           _MetricCard(
             icon: Icons.task_alt_rounded,
             label: 'Çözüm',
             value: '$solved',
-            color: const Color(0xFF17895C),
+            color: const Color(0xFF1F4A3D),
             background: const Color(0xFFE9F8F1),
           ),
           _MetricCard(
             icon: Icons.insights_rounded,
             label: 'Doğruluk',
             value: accuracy == null ? '--' : '%$accuracy',
-            color: const Color(0xFF1685C8),
-            background: const Color(0xFFEAF6FF),
+            color: const Color(0xFF4A1F2C),
+            background: const Color(0xFFF2E6DC),
           ),
         ];
 
@@ -406,8 +406,8 @@ class _QuickActions extends StatelessWidget {
           child: _QuickActionCard(
             icon: Icons.calendar_month_rounded,
             title: 'Program',
-            color: const Color(0xFF6C55E0),
-            background: const Color(0xFFF0ECFF),
+            color: const Color(0xFF1F4A3D),
+            background: const Color(0xFFE7D7CC),
             onTap: onProgram,
           ),
         ),
@@ -416,7 +416,7 @@ class _QuickActions extends StatelessWidget {
           child: _QuickActionCard(
             icon: Icons.folder_copy_outlined,
             title: 'Kayıtlar',
-            color: const Color(0xFF17895C),
+            color: const Color(0xFF1F4A3D),
             background: const Color(0xFFE9F8F1),
             onTap: onQuestions,
           ),
@@ -426,8 +426,8 @@ class _QuickActions extends StatelessWidget {
           child: _QuickActionCard(
             icon: Icons.insights_rounded,
             title: 'Analiz',
-            color: const Color(0xFF1685C8),
-            background: const Color(0xFFEAF6FF),
+            color: const Color(0xFF4A1F2C),
+            background: const Color(0xFFF2E6DC),
             onTap: onAnalytics,
           ),
         ),
@@ -664,7 +664,7 @@ class _MessageCard extends StatelessWidget {
 }
 
 BoxDecoration _cardDecoration({Color? borderColor, Color? shadowColor}) {
-  final shadow = shadowColor ?? const Color(0xFF172033);
+  final shadow = shadowColor ?? const Color(0xFF2B2022);
   return BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(22),

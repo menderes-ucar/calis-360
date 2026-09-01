@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/theme.dart';
+
 class SectionHeroCard extends StatelessWidget {
   const SectionHeroCard({
     super.key,
@@ -18,19 +20,19 @@ class SectionHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+        color: AppTheme.forest,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppTheme.burgundy.withValues(alpha: .28),
+          width: 1.2,
         ),
-        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1685C8).withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: AppTheme.forest.withValues(alpha: .16),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -38,17 +40,17 @@ class SectionHeroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(15),
+              color: AppTheme.ivory.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.24),
-                width: 1.2,
+                color: AppTheme.ivory.withValues(alpha: .22),
+                width: 1.1,
               ),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: AppTheme.ivory, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -58,18 +60,18 @@ class SectionHeroCard extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.3,
-                  ),
+                        color: AppTheme.ivory,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -.35,
+                      ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 6),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.88),
-                    height: 1.35,
-                  ),
+                        color: AppTheme.ivory.withValues(alpha: .82),
+                        height: 1.4,
+                      ),
                 ),
               ],
             ),

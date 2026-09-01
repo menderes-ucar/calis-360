@@ -36,7 +36,6 @@ class BannerWidgetArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subjects = ref.watch(subjectsProvider).valueOrNull ?? const [];
-    final theme = Theme.of(context);
 
     return SizedBox(
       height: 184,
@@ -56,14 +55,14 @@ class BannerWidgetArea extends ConsumerWidget {
             width: 158,
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
+                color: HomeCardStyle.surface,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: HomeCardStyle.borderColor,
                   width: HomeCardStyle.borderWidth,
                 ),
                 boxShadow: HomeCardStyle.shadows(
-                  accent: theme.colorScheme.primary,
+                  accent: HomeCardStyle.forest,
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -89,7 +88,7 @@ class BannerWidgetArea extends ConsumerWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Color(0x08000000), Color(0xD9000000)],
+                            colors: [Color(0x001F4A3D), Color(0xE64A1F2C)],
                             stops: [0.25, 1],
                           ),
                         ),
@@ -104,7 +103,7 @@ class BannerWidgetArea extends ConsumerWidget {
                             Text(
                               name,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: HomeCardStyle.background,
                                 fontSize: 17,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -116,7 +115,7 @@ class BannerWidgetArea extends ConsumerWidget {
                                   child: Text(
                                     'Konu özetlerini aç',
                                     style: TextStyle(
-                                      color: Color(0xFFE7E7E7),
+                                      color: HomeCardStyle.background,
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -124,7 +123,7 @@ class BannerWidgetArea extends ConsumerWidget {
                                 ),
                                 Icon(
                                   Icons.arrow_forward_rounded,
-                                  color: Colors.white,
+                                  color: HomeCardStyle.background,
                                   size: 16,
                                 ),
                               ],

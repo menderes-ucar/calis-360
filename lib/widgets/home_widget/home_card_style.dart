@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 class HomeCardStyle {
   HomeCardStyle._();
 
-  static const borderColor = Color(0xFFD4DEE8);
-  static const double borderWidth = 1.75;
-  static const double radius = 20;
+  static const background = Color(0xFFF2E6DC);
+  static const surface = Color(0xFFFFF8F2);
+  static const burgundy = Color(0xFF4A1F2C);
+  static const forest = Color(0xFF1F4A3D);
+  static const ink = Color(0xFF2B2022);
+  static const muted = Color(0xFF756A66);
+  static const borderColor = Color(0xFFD8C8BC);
+  static const double borderWidth = 1.15;
+  static const double radius = 24;
 
   static BorderSide get borderSide => const BorderSide(
         color: borderColor,
@@ -19,15 +25,15 @@ class HomeCardStyle {
 
   static List<BoxShadow> shadows({Color? accent}) => [
         BoxShadow(
-          color: const Color(0xFF172033).withValues(alpha: 0.085),
-          blurRadius: 16,
-          offset: const Offset(0, 6),
+          color: burgundy.withValues(alpha: 0.075),
+          blurRadius: 24,
+          offset: const Offset(0, 10),
         ),
         if (accent != null)
           BoxShadow(
-            color: accent.withValues(alpha: 0.065),
-            blurRadius: 9,
-            offset: const Offset(0, 3),
+            color: accent.withValues(alpha: 0.055),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
       ];
 }

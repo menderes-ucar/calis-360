@@ -167,7 +167,7 @@ class _AyarlarState extends ConsumerState<Ayarlar> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+                  side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
@@ -242,7 +242,7 @@ class _AyarlarState extends ConsumerState<Ayarlar> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+                side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
               ),
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(
@@ -270,7 +270,7 @@ class _AyarlarState extends ConsumerState<Ayarlar> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFFD7E1EA), width: 1.7),
+                side: const BorderSide(color: Color(0xFFD6C5BB), width: 1.7),
               ),
               child: notificationPreferences.when(
                 data: (preferences) => Column(
@@ -398,7 +398,7 @@ class _SettingsHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
@@ -483,7 +483,7 @@ class _MetaPill extends StatelessWidget {
 
 class _SettingsIcon extends StatelessWidget {
   const _SettingsIcon(this.icon);
-  static const Color color = Color(0xFF1685C8);
+  static const Color color = Color(0xFF4A1F2C);
   final IconData icon;
 
   @override

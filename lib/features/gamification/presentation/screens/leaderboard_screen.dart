@@ -164,10 +164,10 @@ class _MyScoreCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFEAF6FF), Color(0xFFF2ECFF)],
+          colors: [Color(0xFFF2E6DC), Color(0xFFE7D7CC)],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFD8E7F5), width: 1.35),
+        border: Border.all(color: const Color(0xFFD6C5BB), width: 1.35),
       ),
       child: Column(
         children: [
@@ -182,7 +182,7 @@ class _MyScoreCard extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.emoji_events_rounded,
-                  color: Color(0xFF6C55E0),
+                  color: Color(0xFF1F4A3D),
                 ),
               ),
               const SizedBox(width: 14),
@@ -202,7 +202,7 @@ class _MyScoreCard extends StatelessWidget {
                     Text(
                       '$streak günlük seri • en uzun $longestStreak gün',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFFE46638),
+                            color: const Color(0xFF4A1F2C),
                             fontWeight: FontWeight.w700,
                           ),
                     ),
@@ -216,7 +216,7 @@ class _MyScoreCard extends StatelessWidget {
                     '$score',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF1677B8),
+                          color: const Color(0xFF4A1F2C),
                         ),
                   ),
                   const Text('puan'),
@@ -234,7 +234,7 @@ class _MyScoreCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.leaderboard_rounded, color: Color(0xFF6C55E0)),
+                const Icon(Icons.leaderboard_rounded, color: Color(0xFF1F4A3D)),
                 const SizedBox(width: 9),
                 const Text(
                   'Genel sıran',
@@ -244,7 +244,7 @@ class _MyScoreCard extends StatelessWidget {
                 Text(
                   rank == null ? 'Hesaplanıyor' : '#$rank',
                   style: const TextStyle(
-                    color: Color(0xFF6C55E0),
+                    color: Color(0xFF1F4A3D),
                     fontWeight: FontWeight.w900,
                     fontSize: 18,
                   ),
@@ -281,10 +281,10 @@ class _LeaderboardRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-        color: isMe ? const Color(0xFFF2ECFF) : Colors.white,
+        color: isMe ? const Color(0xFFE7D7CC) : Colors.white,
         borderRadius: BorderRadius.circular(17),
         border: Border.all(
-          color: isMe ? const Color(0xFFB7A8F4) : const Color(0xFFE3E8EF),
+          color: isMe ? const Color(0xFFB7A8F4) : const Color(0xFFD6C5BB),
           width: isMe ? 1.6 : 1.2,
         ),
       ),
@@ -297,7 +297,7 @@ class _LeaderboardRow extends StatelessWidget {
                     '#$rank',
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   )
-                : Icon(medal, color: const Color(0xFFE59A24), size: 26),
+                : Icon(medal, color: const Color(0xFF4A1F2C), size: 26),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -334,7 +334,7 @@ class _LeaderboardRow extends StatelessWidget {
           Text(
             '${entry.score}',
             style: const TextStyle(
-              color: Color(0xFF1677B8),
+              color: Color(0xFF4A1F2C),
               fontWeight: FontWeight.w900,
               fontSize: 17,
             ),
@@ -369,13 +369,13 @@ class _TopBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF6FF),
+        color: const Color(0xFFF2E6DC),
         borderRadius: BorderRadius.circular(999),
       ),
       child: const Text(
         'İlk 100',
         style: TextStyle(
-          color: Color(0xFF1685C8),
+          color: Color(0xFF4A1F2C),
           fontWeight: FontWeight.w800,
           fontSize: 12,
         ),
@@ -392,13 +392,13 @@ class _MeBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFF6C55E0).withValues(alpha: .12),
+        color: const Color(0xFF1F4A3D).withValues(alpha: .12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: const Text(
         'SEN',
         style: TextStyle(
-          color: Color(0xFF6C55E0),
+          color: Color(0xFF1F4A3D),
           fontWeight: FontWeight.w900,
           fontSize: 9,
         ),
@@ -454,7 +454,7 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        border: Border.all(color: const Color(0xFFD6C5BB), width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,10 +463,10 @@ class _InfoCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF6FF),
+              color: const Color(0xFFF2E6DC),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: const Color(0xFF1685C8)),
+            child: Icon(icon, color: const Color(0xFF4A1F2C)),
           ),
           const SizedBox(width: 13),
           Expanded(

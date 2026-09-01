@@ -224,8 +224,8 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
                     icon: Icons.add_chart_rounded,
                     title: 'Sınav Ekle',
                     subtitle: 'Net ve konu kırılımı',
-                    color: const Color(0xFF1685C8),
-                    background: const Color(0xFFEAF6FF),
+                    color: const Color(0xFF4A1F2C),
+                    background: const Color(0xFFF2E6DC),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SinavEkle()),
@@ -238,8 +238,8 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
                     icon: Icons.add_circle_outline_rounded,
                     title: 'Soru Ekle',
                     subtitle: 'Çözdüğün soruyu kaydet',
-                    color: const Color(0xFF6C55E0),
-                    background: const Color(0xFFF0ECFF),
+                    color: const Color(0xFF1F4A3D),
+                    background: const Color(0xFFE7D7CC),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SoruEkle()),
@@ -255,7 +255,7 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
                   child: _CompactLink(
                     icon: Icons.auto_awesome_rounded,
                     title: 'AI ile Soru Çöz',
-                    color: const Color(0xFF17895C),
+                    color: const Color(0xFF1F4A3D),
                     onTap: () => context.push(AppRoutes.aiSolver),
                   ),
                 ),
@@ -264,7 +264,7 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
                   child: _CompactLink(
                     icon: Icons.insights_rounded,
                     title: 'Analiz Merkezi',
-                    color: const Color(0xFFE6653C),
+                    color: const Color(0xFF4A1F2C),
                     onTap: () => context.push(AppRoutes.analytics),
                   ),
                 ),
@@ -284,7 +284,7 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
               icon: Icons.quiz_outlined,
               title: 'Sorular',
               count: sorular.length,
-              color: const Color(0xFF6C55E0),
+              color: const Color(0xFF1F4A3D),
             ),
             const SizedBox(height: 10),
             _buildSorularCard(sorularAsync),
@@ -293,7 +293,7 @@ class _SoruSinavTakibiState extends ConsumerState<SoruSinavTakibi> {
               icon: Icons.assignment_outlined,
               title: 'Sınavlar',
               count: sinavlar.length,
-              color: const Color(0xFF1685C8),
+              color: const Color(0xFF4A1F2C),
             ),
             const SizedBox(height: 10),
             _buildSinavlarCard(sinavlarAsync),
@@ -478,12 +478,12 @@ class _RecordsHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1685C8), Color(0xFF6C55E0)],
+          colors: [Color(0xFF4A1F2C), Color(0xFF1F4A3D)],
         ),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1685C8).withValues(alpha: 0.18),
+            color: const Color(0xFF4A1F2C).withValues(alpha: 0.18),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -684,9 +684,9 @@ class _ExamAverageCard extends StatelessWidget {
             const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(child: _Metric(label: 'TYT Ortalama', value: tytAverage == 0 ? '—' : tytAverage.toStringAsFixed(2), color: const Color(0xFF1685C8))),
+                Expanded(child: _Metric(label: 'TYT Ortalama', value: tytAverage == 0 ? '—' : tytAverage.toStringAsFixed(2), color: const Color(0xFF4A1F2C))),
                 Container(height: 48, width: 1.2, color: Theme.of(context).colorScheme.outlineVariant),
-                Expanded(child: _Metric(label: 'AYT Ortalama', value: aytAverage == 0 ? '—' : aytAverage.toStringAsFixed(2), color: const Color(0xFF6C55E0))),
+                Expanded(child: _Metric(label: 'AYT Ortalama', value: aytAverage == 0 ? '—' : aytAverage.toStringAsFixed(2), color: const Color(0xFF1F4A3D))),
               ],
             ),
             if (hasError && errorText != null) ...[
@@ -747,7 +747,7 @@ class _QuestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAi = soru.isAiSaved;
-    final accent = isAi ? const Color(0xFF6C55E0) : const Color(0xFF1685C8);
+    final accent = isAi ? const Color(0xFF1F4A3D) : const Color(0xFF4A1F2C);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(15),
@@ -764,8 +764,8 @@ class _QuestionCard extends StatelessWidget {
                   const SizedBox(height: 5),
                   Wrap(spacing: 6, runSpacing: 6, children: [
                     _Tag(text: soru.soruDers.isEmpty ? 'Ders belirtilmedi' : soru.soruDers, color: accent),
-                    if (soru.soruKonu.trim().isNotEmpty) _Tag(text: soru.soruKonu, color: const Color(0xFF17895C)),
-                    if (isAi) const _Tag(text: 'AI', color: Color(0xFF6C55E0)),
+                    if (soru.soruKonu.trim().isNotEmpty) _Tag(text: soru.soruKonu, color: const Color(0xFF1F4A3D)),
+                    if (isAi) const _Tag(text: 'AI', color: Color(0xFF1F4A3D)),
                   ]),
                 ])),
                 PopupMenuButton<String>(
@@ -798,7 +798,7 @@ class _ExamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalNet = sinav.netler.values.fold<double>(0, (sum, value) => sum + value);
-    final accent = sinav.sinavTuru.trim().toUpperCase() == 'AYT' ? const Color(0xFF6C55E0) : const Color(0xFF1685C8);
+    final accent = sinav.sinavTuru.trim().toUpperCase() == 'AYT' ? const Color(0xFF1F4A3D) : const Color(0xFF4A1F2C);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -847,7 +847,7 @@ class _SubjectResultRow extends StatelessWidget {
             const SizedBox(height: 5),
             Wrap(spacing: 6, runSpacing: 6, children: d.konular.entries.map((entry) {
               final topicSuccess = entry.value.basariOrani;
-              return _Tag(text: '${entry.key}${topicSuccess == null ? '' : ' %${(topicSuccess * 100).round()}'}', color: const Color(0xFF17895C));
+              return _Tag(text: '${entry.key}${topicSuccess == null ? '' : ' %${(topicSuccess * 100).round()}'}', color: const Color(0xFF1F4A3D));
             }).toList(growable: false)),
           ],
         ],
