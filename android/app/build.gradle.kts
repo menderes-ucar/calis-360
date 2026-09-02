@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 // key.properties dosyasını yükle
@@ -23,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId = "com.calis360.app"
-        minSdk = 23
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -1,7 +1,7 @@
 name: zirve
 description: "Çalış 360 - AI destekli kişisel çalışma asistanı."
 publish_to: 'none'
-version: 1.0.0+19
+version: 1.0.0+20
 
 environment:
   sdk: ^3.10.0
@@ -45,9 +45,10 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "images/ic_launcher.png"
-  adaptive_icon_foreground: "assets/icon_foreground.png"
-  adaptive_icon_background: "assets/icon_background.png"
+  image_path: "images/calis360_icon1.png"
+  adaptive_icon_background: "#F2E6DC"
+  adaptive_icon_foreground: "images/calis360_icon1.png"
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
