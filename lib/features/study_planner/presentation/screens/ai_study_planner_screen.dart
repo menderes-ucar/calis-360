@@ -154,7 +154,7 @@ class _AiStudyPlannerScreenState extends ConsumerState<AiStudyPlannerScreen> {
 
     final request = StudyPlanRequest(
       examScope: _examScope,
-      field: _needsField ? _field : 'TYT',
+      field: _needsField ? _field : 'none',
       dailyHours: _dailyHours,
       studyDays: _studyDays,
       offDay: _studyDays == 7 ? null : _offDay,

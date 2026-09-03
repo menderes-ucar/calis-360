@@ -17,19 +17,26 @@ final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
   return GamificationRepository(
     firestore: ref.watch(firebaseFirestoreProvider),
     auth: ref.watch(firebaseAuthProvider),
+    functions: ref.watch(firebaseFunctionsProvider),
   );
 });
 
 final studyActivityDaysProvider = StreamProvider.autoDispose<List<DateTime>>((ref) {
+  final user = ref.watch(currentFirebaseUserProvider);
+  if (user == null) return Stream.value(const <DateTime>[]);
   return ref.watch(gamificationRepositoryProvider).watchActivityDays();
 });
 
 final leaderboardEntriesProvider =
     StreamProvider.autoDispose<List<LeaderboardEntry>>((ref) {
+  final user = ref.watch(currentFirebaseUserProvider);
+  if (user == null) return Stream.value(const <LeaderboardEntry>[]);
   return ref.watch(gamificationRepositoryProvider).watchTopLeaderboard();
 });
 
 final leaderboardRankProvider = FutureProvider.autoDispose<int>((ref) async {
+  final user = ref.watch(currentFirebaseUserProvider);
+  if (user == null) return 0;
   await ref.watch(leaderboardSyncProvider.future);
   return ref.watch(gamificationRepositoryProvider).getCurrentUserRank();
 });
@@ -37,6 +44,9 @@ final leaderboardRankProvider = FutureProvider.autoDispose<int>((ref) async {
 final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
   ref,
 ) {
+  final user = ref.watch(currentFirebaseUserProvider);
+  if (user == null) return const AsyncLoading();
+
   final questions = ref.watch(sorularProvider);
   final exams = ref.watch(sinavlarProvider);
   final aiHistory = ref.watch(aiHistoryProvider);
@@ -83,6 +93,9 @@ final gamificationSummaryProvider = Provider<AsyncValue<GamificationSummary>>((
 });
 
 final leaderboardSyncProvider = FutureProvider.autoDispose<void>((ref) async {
+  final firebaseUser = ref.watch(currentFirebaseUserProvider);
+  if (firebaseUser == null) return;
+
   final summaryValue = ref.watch(gamificationSummaryProvider);
   final userValue = ref.watch(currentAppUserProvider);
   final summary = summaryValue.valueOrNull;
@@ -90,14 +103,7 @@ final leaderboardSyncProvider = FutureProvider.autoDispose<void>((ref) async {
 
   if (summary == null || user == null) return;
 
-  final name = user.displayName?.trim().isNotEmpty == true
-      ? user.displayName!.trim()
-      : 'Çalış 360 Öğrencisi';
-
-  await ref.read(gamificationRepositoryProvider).syncLeaderboard(
-        displayName: name,
-        summary: summary,
-      );
+  await ref.read(gamificationRepositoryProvider).syncLeaderboard();
 });
 
 Object? _firstError(List<AsyncValue<dynamic>> values) {
