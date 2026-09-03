@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../domain/gamification_summary.dart';
 import '../domain/leaderboard_entry.dart';
@@ -8,11 +9,14 @@ class GamificationRepository {
   GamificationRepository({
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
+    required FirebaseFunctions functions,
   }) : _firestore = firestore,
-       _auth = auth;
+       _auth = auth,
+       _functions = functions;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
 
   String? get _uid => _auth.currentUser?.uid;
 
@@ -58,32 +62,12 @@ class GamificationRepository {
     }, SetOptions(merge: true));
   }
 
-  Future<void> syncLeaderboard({
-    required String displayName,
-    required GamificationSummary summary,
-  }) async {
+  Future<void> syncLeaderboard() async {
     final uid = _uid;
     if (uid == null) return;
 
-    final safeName = displayName.trim().isEmpty
-        ? 'Çalış 360 Öğrencisi'
-        : displayName.trim();
-
-    await _leaderboard.doc(uid).set({
-      'uid': uid,
-      'displayName': safeName,
-      'score': summary.score,
-      'currentStreak': summary.currentStreak,
-      'longestStreak': summary.longestStreak,
-      'correctCount': summary.correctCount,
-      'wrongCount': summary.wrongCount,
-      'solvedCount': summary.solvedCount,
-      'examCount': summary.examCount,
-      'completedStudyCount': summary.completedStudyCount,
-      'completedGoalCount': summary.completedGoalCount,
-      'activeDayCount': summary.activeDayCount,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    final callable = _functions.httpsCallable('syncLeaderboard');
+    await callable.call<void>();
   }
 
   Future<int> getCurrentUserRank() async {
