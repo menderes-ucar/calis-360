@@ -17,10 +17,10 @@ const VALID_INTENSITIES = ['rahat', 'dengeli', 'yogun'];
 const VALID_MODES = ['ai_topics', 'manual_topics', 'subjects_only'];
 
 const SUBJECT_POOLS = {
-  TYT: ['Türkçe', 'Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Din Kültürü'],
-  sayisal: ['AYT Matematik', 'AYT Geometri', 'AYT Fizik', 'AYT Kimya', 'AYT Biyoloji'],
-  esit_agirlik: ['AYT Matematik', 'AYT Geometri', 'AYT Edebiyat', 'AYT Tarih-1', 'AYT Coğrafya-1'],
-  sozel: ['AYT Edebiyat', 'AYT Tarih-1', 'AYT Coğrafya-1', 'AYT Tarih-2', 'AYT Coğrafya-2', 'AYT Felsefe Grubu', 'AYT Din Kültürü'],
+  TYT: ['Türkçe', 'Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Din'],
+  sayisal: ['Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe'],
+  esit_agirlik: ['Matematik', 'Geometri', 'Türkçe', 'Edebiyat', 'Tarih', 'Coğrafya'],
+  sozel: ['Türkçe', 'Edebiyat', 'Tarih', 'Coğrafya', 'Felsefe', 'Din'],
 };
 
 const PLAN_SCHEMA = {
@@ -73,7 +73,7 @@ function normalizeField(value) {
   if (['sayisal', 'sayısal'].includes(raw) || compact === 'sayisal') return 'sayisal';
   if (raw.includes('eşit') || compact.includes('esit')) return 'esit_agirlik';
   if (['sozel', 'sözel'].includes(raw) || compact === 'sozel') return 'sozel';
-  if (!raw || raw === 'none' || raw === 'yok') return 'none';
+  if (!raw || raw === 'none' || raw === 'yok' || raw === 'tyt') return 'none';
   return compact;
 }
 
@@ -328,7 +328,9 @@ export const generateWeeklyStudyPlanHandler = onCall(
     const mode = clean(data.mode, 30).toLowerCase();
     const targetWeek = Math.trunc(Number(data.targetWeek));
     const pool = allowedSubjects(examScope, field);
-    const poolKeys = new Map(pool.map((subject) => [subject.replace(/^AYT\s+/i, '').toLocaleLowerCase('tr-TR'), subject.replace(/^AYT\s+/i, '')]));
+    const poolKeys = new Map(
+      pool.map((subject) => [subject.toLocaleLowerCase('tr-TR'), subject]),
+    );
     const selectedSubjects = Array.isArray(data.selectedSubjects)
       ? [...new Set(data.selectedSubjects.map((x) => clean(x, 80)).filter(Boolean))].slice(0, 12)
       : [];

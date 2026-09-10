@@ -7,10 +7,12 @@ import { deleteCurrentAccountHandler } from './account.js';
 import { solveQuestionWithAiHandler } from './ai_solver.js';
 import { generateWeeklyStudyPlanHandler } from './study_planner.js';
 import { authorizeAudioLessonHandler } from './audio_access.js';
+import { syncLeaderboardHandler } from './leaderboard.js';
 import {
   getBillingCatalogHandler,
   getMyBillingStatusHandler,
   verifyGooglePlayPurchaseHandler,
+  verifyStorePurchaseHandler,
 } from './billing.js';
 import { runDailyDigest, runStudyReminders } from './jobs/smart_reminders.js';
 
@@ -53,7 +55,9 @@ export const deleteCurrentAccount = deleteCurrentAccountHandler;
 export const solveQuestionWithAi = solveQuestionWithAiHandler;
 export const generateWeeklyStudyPlan = generateWeeklyStudyPlanHandler;
 export const authorizeAudioLesson = authorizeAudioLessonHandler;
+export const syncLeaderboard = syncLeaderboardHandler;
 
 export const getBillingCatalog = getBillingCatalogHandler;
 export const getMyBillingStatus = getMyBillingStatusHandler;
 export const verifyGooglePlayPurchase = verifyGooglePlayPurchaseHandler;
+export const verifyStorePurchase = verifyStorePurchaseHandler;
