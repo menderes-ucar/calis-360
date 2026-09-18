@@ -166,7 +166,7 @@ class BillingController extends StateNotifier<BillingState> {
 
     if (!state.storeAvailable) {
       state = state.copyWith(
-        error: 'Google Play mağazası şu anda kullanılamıyor.',
+        error: 'Mağaza bağlantısı şu anda kullanılamıyor.',
         clearMessage: true,
       );
       return;
@@ -213,7 +213,7 @@ class BillingController extends StateNotifier<BillingState> {
     switch (purchase.status) {
       case PurchaseStatus.pending:
         state = state.copyWith(
-          message: 'Satın alma Google Play tarafından işleniyor.',
+          message: 'Satın alma mağaza tarafından işleniyor.',
           clearError: true,
         );
         return;
@@ -242,26 +242,33 @@ class BillingController extends StateNotifier<BillingState> {
   }
 
   Future<void> _verifyAndCompletePurchase(PurchaseDetails purchase) async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
-      state = state.copyWith(
-        error: 'Bu sürümde mağaza doğrulaması yalnızca Google Play için etkin.',
-        clearMessage: true,
-      );
-      return;
+    final isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+
+    String verificationId;
+    if (isApple) {
+      // On Apple platforms purchaseID is the StoreKit transaction identifier.
+      // Do not send Apple's signed verification payload as a Google purchase token.
+      verificationId = (purchase.purchaseID ?? '').trim();
+      if (verificationId.isEmpty) {
+        state = state.copyWith(
+          error: 'App Store transaction kimliği alınamadı.',
+          clearMessage: true,
+        );
+        return;
+      }
+    } else {
+      verificationId = purchase.verificationData.serverVerificationData.trim();
+      if (verificationId.isEmpty) {
+        state = state.copyWith(
+          error: 'Satın alma doğrulama bilgisi alınamadı.',
+          clearMessage: true,
+        );
+        return;
+      }
     }
 
-    final purchaseToken = purchase.verificationData.serverVerificationData
-        .trim();
-
-    if (purchaseToken.isEmpty) {
-      state = state.copyWith(
-        error: 'Google Play satın alma doğrulama bilgisi alınamadı.',
-        clearMessage: true,
-      );
-      return;
-    }
-
-    final processingKey = '${purchase.productID}:$purchaseToken';
+    final processingKey = '${purchase.productID}:$verificationId';
 
     if (!_processingPurchases.add(processingKey)) {
       return;
@@ -273,10 +280,15 @@ class BillingController extends StateNotifier<BillingState> {
         clearError: true,
       );
 
-      final result = await _repository.verifyGooglePlayPurchase(
-        storeProductId: purchase.productID,
-        purchaseToken: purchaseToken,
-      );
+      final result = isApple
+          ? await _repository.verifyApplePurchase(
+              storeProductId: purchase.productID,
+              transactionId: verificationId,
+            )
+          : await _repository.verifyGooglePlayPurchase(
+              storeProductId: purchase.productID,
+              purchaseToken: verificationId,
+            );
 
       final ok = result['ok'] == true;
       final fulfilled = result['fulfilled'] == true;
@@ -308,7 +320,7 @@ class BillingController extends StateNotifier<BillingState> {
         );
       }
 
-      // Google Play tarafındaki completion, backend fulfillment'tan ayrıdır.
+      // Mağaza completion, backend fulfillment'tan ayrıdır.
       // Burada oluşan hata kullanıcıya "satın alma başarısız" gösterilmemeli.
       if (purchase.pendingCompletePurchase) {
         try {

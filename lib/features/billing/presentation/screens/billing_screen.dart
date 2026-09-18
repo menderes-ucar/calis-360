@@ -78,7 +78,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Mağaza ürünleri ve fiyatlar okunuyor. Gerçek ödeme, Google Play / App Store makbuz doğrulaması backend tarafında tamamlandıktan sonra açılacak. Bu aşamada kullanıcıdan para çekilmez.',
+                          'Mağaza ürünleri ve fiyatlar okunuyor. Gerçek ödeme, mağaza doğrulaması backend tarafında tamamlandıktan sonra işlenir. Bu aşamada kullanıcıdan para çekilmez.',
                         ),
                       ),
                     ],
@@ -148,7 +148,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             if (!state.storeAvailable) ...[
               const SizedBox(height: 12),
               const Text(
-                'Google Play / App Store bağlantısı bu cihazda kullanılamıyor. Ürünleri test etmek için mağazaya bağlı gerçek veya uygun test cihazı kullanın.',
+                'Mağaza bağlantısı bu cihazda kullanılamıyor. Ürünleri test etmek için mağazaya bağlı uygun bir test cihazı kullanın.',
                 textAlign: TextAlign.center,
               ),
             ],
