@@ -21,6 +21,8 @@ workflows:
     scripts:
       - name: Check Firebase environment variables
         script: |
+          set -e
+
           if [ -z "$FIREBASE_OPTIONS_B64" ]; then
             echo "ERROR: FIREBASE_OPTIONS_B64 is not available in Codemagic"
             exit 1
@@ -35,6 +37,8 @@ workflows:
 
       - name: Restore Firebase configuration
         script: |
+          set -e
+
           printf '%s' "$FIREBASE_OPTIONS_B64" | base64 --decode > lib/firebase_options.dart
           printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 --decode > ios/Runner/GoogleService-Info.plist
 
@@ -52,21 +56,45 @@ workflows:
 
       - name: Get Flutter packages
         script: |
+          set -e
           flutter pub get
+
+      - name: Clean Flutter build
+        script: |
+          set -e
+
+          echo "=== CLEANING FLUTTER BUILD ==="
+
+          flutter clean
+          rm -rf build
+
+          flutter pub get
+
+          echo "Flutter build cleaned successfully"
 
       - name: Clean and install iOS pods
         script: |
+          set -e
+
           cd ios
+
           rm -rf Pods
           rm -f Podfile.lock
+
           pod install --repo-update
+
           cd ..
+
+          echo "iOS pods installed successfully"
 
       - name: Set up iOS code signing
         script: |
+          set -e
+
           xcode-project use-profiles
 
           echo "=== EXPORT OPTIONS ==="
+
           if [ ! -f "/Users/builder/export_options.plist" ]; then
             echo "ERROR: /Users/builder/export_options.plist was not generated"
             exit 1
@@ -74,34 +102,187 @@ workflows:
 
           plutil -p /Users/builder/export_options.plist
 
+      - name: Verify project configuration
+        script: |
+          set -e
+
+          echo "======================================"
+          echo "VERIFYING PROJECT CONFIGURATION"
+          echo "======================================"
+
+          echo "Expected Bundle ID:"
+          echo "com.menderesucar.calis360"
+
+          echo "Expected Marketing Version:"
+          echo "1.0.0"
+
+          echo "Expected Build Number:"
+          echo "22"
+
+          echo "======================================"
+          echo "PUBSPEC VERSION"
+          echo "======================================"
+
+          grep "^version:" pubspec.yaml || true
+
+          echo "======================================"
+          echo "XCODE PROJECT VERSION SETTINGS"
+          echo "======================================"
+
+          grep -R "CURRENT_PROJECT_VERSION" ios/Runner.xcodeproj/project.pbxproj || true
+          grep -R "MARKETING_VERSION" ios/Runner.xcodeproj/project.pbxproj || true
+          grep -R "PRODUCT_BUNDLE_IDENTIFIER" ios/Runner.xcodeproj/project.pbxproj || true
+
       - name: Build IPA
         script: |
+          set -e
+
+          echo "======================================"
+          echo "BUILDING IOS IPA"
+          echo "======================================"
+
+          echo "Expected CFBundleShortVersionString: 1.0.0"
+          echo "Expected CFBundleVersion: 22"
+          echo "Expected Bundle ID: com.menderesucar.calis360"
+
           flutter build ipa \
             --release \
             --build-name=1.0.0 \
-            --build-number=21 \
+            --build-number=22 \
             --export-options-plist=/Users/builder/export_options.plist
+
+          echo "======================================"
+          echo "IPA BUILD COMPLETED"
+          echo "======================================"
 
       - name: Verify generated IPA
         script: |
+          set -e
+
           echo "======================================"
           echo "SEARCHING FOR GENERATED IPA"
           echo "======================================"
 
-          find "$CM_BUILD_DIR/build/ios" -type f -name "*.ipa" -print
+          find "$CM_BUILD_DIR/build/ios" \
+            -type f \
+            -name "*.ipa" \
+            -print
 
-          IPA_COUNT=$(find "$CM_BUILD_DIR/build/ios" -type f -name "*.ipa" | wc -l | tr -d ' ')
+          IPA_COUNT=$(find "$CM_BUILD_DIR/build/ios" \
+            -type f \
+            -name "*.ipa" | wc -l | tr -d ' ')
 
           echo "IPA count: $IPA_COUNT"
 
           if [ "$IPA_COUNT" -eq 0 ]; then
             echo "ERROR: No IPA file was generated."
+
             echo "Archive contents:"
-            find "$CM_BUILD_DIR/build/ios" -maxdepth 5 -type f -print 2>/dev/null | tail -200
+            find "$CM_BUILD_DIR/build/ios" \
+              -maxdepth 5 \
+              -type f \
+              -print 2>/dev/null | tail -200
+
             exit 1
           fi
 
-          echo "IPA generated successfully"
+          IPA=$(find "$CM_BUILD_DIR/build/ios" \
+            -type f \
+            -name "*.ipa" | head -1)
+
+          echo "======================================"
+          echo "IPA SELECTED FOR VERIFICATION"
+          echo "======================================"
+
+          echo "$IPA"
+
+          TMP_DIR=$(mktemp -d)
+
+          echo "======================================"
+          echo "EXTRACTING IPA"
+          echo "======================================"
+
+          unzip -q "$IPA" -d "$TMP_DIR"
+
+          APP_PATH=$(find "$TMP_DIR/Payload" \
+            -maxdepth 1 \
+            -type d \
+            -name "*.app" | head -1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: .app not found inside IPA"
+            exit 1
+          fi
+
+          echo "APP PATH:"
+          echo "$APP_PATH"
+
+          INFO_PLIST="$APP_PATH/Info.plist"
+
+          if [ ! -f "$INFO_PLIST" ]; then
+            echo "ERROR: Info.plist not found"
+            exit 1
+          fi
+
+          echo "======================================"
+          echo "ACTUAL IPA VERSION"
+          echo "======================================"
+
+          BUNDLE_ID=$(
+            /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIdentifier" \
+            "$INFO_PLIST"
+          )
+
+          SHORT_VERSION=$(
+            /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleShortVersionString" \
+            "$INFO_PLIST"
+          )
+
+          BUILD_VERSION=$(
+            /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleVersion" \
+            "$INFO_PLIST"
+          )
+
+          echo "CFBundleIdentifier: $BUNDLE_ID"
+          echo "CFBundleShortVersionString: $SHORT_VERSION"
+          echo "CFBundleVersion: $BUILD_VERSION"
+
+          echo "======================================"
+          echo "VALIDATING IPA"
+          echo "======================================"
+
+          if [ "$BUNDLE_ID" != "com.menderesucar.calis360" ]; then
+            echo "ERROR: Wrong bundle identifier!"
+            echo "Expected: com.menderesucar.calis360"
+            echo "Actual: $BUNDLE_ID"
+            exit 1
+          fi
+
+          if [ "$SHORT_VERSION" != "1.0.0" ]; then
+            echo "ERROR: Wrong marketing version!"
+            echo "Expected: 1.0.0"
+            echo "Actual: $SHORT_VERSION"
+            exit 1
+          fi
+
+          if [ "$BUILD_VERSION" != "22" ]; then
+            echo "ERROR: IPA CFBundleVersion is NOT 22!"
+            echo "Expected: 22"
+            echo "Actual: $BUILD_VERSION"
+            exit 1
+          fi
+
+          echo "======================================"
+          echo "SUCCESS"
+          echo "======================================"
+          echo "IPA Bundle ID: $BUNDLE_ID"
+          echo "IPA Version: $SHORT_VERSION"
+          echo "IPA Build: $BUILD_VERSION"
+          echo "IPA is correctly versioned as 1.0.0 (22)."
+          echo "======================================"
 
     artifacts:
       - build/ios/ipa/*.ipa
